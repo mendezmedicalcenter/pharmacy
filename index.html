@@ -134,7 +134,23 @@
     .pdl-field textarea{ min-height:90px; resize:vertical; }
     .pdl-modal-note{ background:#fff8ec; border-left:4px solid #e6a23c; border-radius:8px; padding:12px 14px; font-size:14px; color:#6b5836; margin-bottom:18px; }
     .pdl-modal-foot{ display:flex; justify-content:flex-end; gap:10px; }
-    @media print{ .topbar,.pdl-actions,.pdl-tech,.pdl-date{ display:none; } }
+    /* view switching (Dashboard / Daily Log) */
+    .pv{ display:none; }
+    body.view-dashboard .pv-dashboard{ display:block; }
+    body.view-daily .pv-daily{ display:block; }
+    .pv-tabs{ display:flex; gap:8px; margin:4px 0 2px; }
+    body.embed .pv-tabs{ display:none; }
+    .pv-tab{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:9px 18px; font-weight:700; color:var(--sub); cursor:pointer; font-size:14px; }
+    .pv-tab.on{ background:var(--navy); color:#fff; border-color:var(--navy); }
+    .pdo{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px 20px; margin-top:16px; border-top:3px solid #1e56a0; }
+    .pdo-head{ font-weight:800; color:var(--navy); font-size:18px; margin-bottom:14px; }
+    .pdo-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .pdo-card{ border:1px solid var(--line); border-top:4px solid #94a3b8; border-radius:14px; padding:16px 20px; background:#fbfcfe; }
+    .pdo-card.t-amber{ border-top-color:#e6a23c; } .pdo-card.t-teal{ border-top-color:#1aa4b0; } .pdo-card.t-purple{ border-top-color:#7a3fc0; } .pdo-card.t-green{ border-top-color:#2e9e5b; } .pdo-card.t-blue{ border-top-color:#2f6bd8; } .pdo-card.t-indigo{ border-top-color:#5b4bd8; }
+    .pdo-label{ font-size:12px; font-weight:800; letter-spacing:1px; color:var(--sub); }
+    .pdo-num{ font-size:38px; font-weight:800; color:var(--navy); line-height:1.1; margin:6px 0 2px; }
+    .pdo-sub{ font-size:13px; color:var(--sub); }
+    @media print{ .pv-tabs,.pdl-actions,.pdl-tech,.pdl-date{ display:none; } body.view-dashboard .pv-daily, body.view-daily .pv-dashboard{ display:block !important; } }
   </style>
 </head>
 <body>
@@ -247,6 +263,21 @@
         '<span class="pdl-green"><b>'+money(t.postedTotal)+'</b> total posted</span></div>';
     }
     function avgHTML(){ var a=avgWait(); return 'AVG WAIT — '+(a!=null?a+' min':'no ready patients yet'); }
+    function statusCount(s){ return S.patients.filter(function(p){ return p.status===s; }).length; }
+    function overviewHTML(){
+      var t=totals();
+      var cards=[
+        ['Waiting',statusCount('Waiting'),'In the queue','amber'],
+        ['In Progress',statusCount('In Progress'),'Being filled','teal'],
+        ['Ready',statusCount('Ready'),'Ready for pickup','purple'],
+        ['Completed',statusCount('Completed'),'Picked up today','green'],
+        ['Patients',t.count,'Total today','blue'],
+        ['Total Rx',t.rx,'Filled today','indigo']
+      ];
+      return '<div class="pdo" id="pdl-overview"><div class="pdo-head">Overview</div><div class="pdo-grid">'+
+        cards.map(function(c){ return '<div class="pdo-card t-'+c[3]+'"><div class="pdo-label">'+esc(String(c[0]).toUpperCase())+'</div><div class="pdo-num">'+c[1]+'</div><div class="pdo-sub">'+c[2]+'</div></div>'; }).join('')+
+        '</div></div>';
+    }
     function paymentCellHTML(p){
       if(p.payment==='No Copay') return '<span class="pay pay-nocopay">No Copay</span>';
       var cls=p.payment==='Posted'?'pay-posted':'pay-notposted';
@@ -286,6 +317,7 @@
 
     function render(){
       var dateLabel=new Date(S.selDate+'T00:00:00').toLocaleDateString([],{month:'long',day:'numeric',year:'numeric'});
+      var curView=document.body.classList.contains('view-daily')?'daily':'dashboard';
       var rows = S.patients.length===0
         ? '<tr><td colspan="14" class="pdl-empty">No patients yet today. Click "+ Add Patient" to start.</td></tr>'
         : S.patients.map(function(p,i){ return rowHTML(p,i); }).join('');
@@ -305,7 +337,12 @@
               '</div>'+
             '</div>'+
           '</div>'+
-          statsHTML()+
+          '<div class="pv-tabs">'+
+            '<button class="pv-tab'+(curView==='dashboard'?' on':'')+'" data-action="view" data-view="dashboard">Dashboard</button>'+
+            '<button class="pv-tab'+(curView==='daily'?' on':'')+'" data-action="view" data-view="daily">Daily Log</button>'+
+          '</div>'+
+          '<div class="pv pv-dashboard">'+statsHTML()+overviewHTML()+'</div>'+
+          '<div class="pv pv-daily">'+
           '<div class="pdl-table-card">'+
             '<div class="pdl-table-head"><h3>👥 Today\'s Patients</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
               '<div class="pdl-actions">'+
@@ -319,6 +356,7 @@
               '<th>#</th><th>Time</th><th>Wait</th><th>Employee</th><th>Patient Name</th><th>Notes</th><th>Status</th><th>Provider</th><th># of Rx</th><th>Debit</th><th>Cash</th><th>Payment</th><th>Del.</th><th>Action</th>'+
             '</tr></thead><tbody>'+rows+'</tbody></table></div>'+
             totalsHTML()+
+          '</div>'+
           '</div>'+
         '</div>'+
         (S.modal?
@@ -342,8 +380,15 @@
     // targeted refresh (no full re-render) — keeps table inputs focused
     function refreshDerived(){
       var st=document.getElementById('pdl-stats'); if(st) st.outerHTML=statsHTML();
+      var ov=document.getElementById('pdl-overview'); if(ov) ov.outerHTML=overviewHTML();
       var to=document.getElementById('pdl-totals'); if(to) to.outerHTML=totalsHTML();
       var av=document.getElementById('pdl-avg'); if(av) av.innerHTML=avgHTML();
+    }
+    function applyView(t){
+      document.body.classList.remove('view-dashboard','view-daily');
+      document.body.classList.add('view-'+t);
+      var tabs=document.querySelectorAll('.pv-tab');
+      for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-view')===t); }
     }
 
     // ---- event delegation ----
@@ -364,6 +409,7 @@
       else if(a==='refresh'){ S.now=Date.now(); render(); }
       else if(a==='print'){ window.print(); }
       else if(a==='full'){ S.full=!S.full; render(); }
+      else if(a==='view'){ applyView(el.getAttribute('data-view')); }
       else if(a==='today'){ changeDate(todayKey()); }
     });
     wrap.addEventListener('input',function(e){
@@ -390,7 +436,14 @@
       refreshDerived();
     },1000);
 
+    // view mode: embedded in the portal (?embed=1) hides the in-app tabs and takes
+    // the view (dashboard / daily) from the URL hash; standalone defaults to dashboard.
+    var _embed=/[?&]embed=1/.test(location.search);
+    if(_embed) document.body.classList.add('embed');
+    function _viewFromHash(){ return location.hash.replace(/^#/,'')==='daily'?'daily':'dashboard'; }
+    document.body.classList.add('view-'+(_embed?_viewFromHash():'dashboard'));
     render();
+    if(_embed) window.addEventListener('hashchange',function(){ applyView(_viewFromHash()); });
   })();
   </script>
 </body>
