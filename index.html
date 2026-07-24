@@ -3,127 +3,396 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- ============ APP IDENTITY ============ -->
-  <title>Mendez Pharmacy</title>
+  <title>Mendez Pharmacy — Daily Log</title>
   <meta name="apple-mobile-web-app-title" content="Mendez Pharmacy">
   <meta name="application-name" content="Mendez Pharmacy">
-  <meta name="description" content="Mendez Medical Center — Pharmacy Dashboard">
-
-  <!-- iOS / iPadOS standalone-mode metadata. When the user "Adds to Home
-       Screen", the icon below shows up on the home screen and the app
-       launches full-screen with no Safari toolbar. -->
+  <meta name="description" content="Mendez Medical Center — Pharmacy Daily Log">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0a2a6e">
   <meta name="mobile-web-app-capable" content="yes">
-
-  <!-- ============ ICONS ============
-       The same logo.png file is used for every icon size. Browsers and
-       iOS will pick whichever fits their context best. -->
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="shortcut icon" type="image/png" href="logo.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="logo.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="logo.png">
   <link rel="apple-touch-icon" href="logo.png">
-
-  <!-- Web app manifest — required for "Install as app" on Chrome/Edge -->
   <link rel="manifest" href="manifest.json">
-
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #0a2a6e 0%, #061a4a 100%);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-    }
-    .splash {
-      max-width: 360px;
-    }
-    .splash img {
-      width: 120px;
-      height: 120px;
-      object-fit: contain;
-      border-radius: 24px;
-      background: #ffffff;
-      padding: 14px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-      margin-bottom: 24px;
-    }
-    .splash h1 {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      margin-bottom: 6px;
-    }
-    .splash p {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.75);
-      margin-bottom: 22px;
-    }
-    .spinner {
-      display: inline-block;
-      width: 28px;
-      height: 28px;
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      border-top-color: #f5a821;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .manual-link {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 18px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: background 0.15s;
-    }
-    .manual-link:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
+    :root{ --navy:#163a6b; --blue:#2563b0; --panel:#e8f0fb; --ink:#1f2937; --sub:#5b6b80; --line:#dbe6f5; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{ font-family:'Segoe UI',Calibri,system-ui,Arial,sans-serif; background:#eef3fb; color:var(--ink); }
+    .wrap{ max-width:1400px; margin:0 auto; padding:18px 22px 60px; }
+    .topbar{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+    .topbar img{ height:40px; width:40px; object-fit:contain; border-radius:9px; background:#fff; padding:4px; box-shadow:0 3px 10px rgba(10,42,110,.12); }
+    .topbar b{ color:var(--navy); font-size:18px; letter-spacing:-.2px; }
+    .topbar span{ color:var(--sub); font-size:13px; }
+
+    .btn{ border:none; border-radius:10px; font-size:15px; font-weight:600; padding:11px 20px; cursor:pointer; transition:background .15s,opacity .15s; }
+    .btn.primary{ background:var(--blue); color:#fff; }
+    .btn.primary:hover{ background:#1e56a0; }
+    .btn.ghost{ background:transparent; color:var(--navy); padding-left:6px; }
+    .btn.ghost:hover{ color:var(--blue); }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; }
+
+    .pdl{ display:flex; flex-direction:column; gap:16px; }
+    .pdl.pdl-fs{ position:fixed; inset:0; z-index:400; background:#eef3fb; overflow:auto; padding:16px 22px calc(22px + env(safe-area-inset-bottom)); margin:0; }
+    .pdl-banner{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; background:linear-gradient(120deg,#0a2a52 0%,#103a6e 100%); border:2px solid #e6a23c; border-radius:16px; padding:18px 22px; color:#fff; }
+    .pdl-banner h1{ margin:0; font-size:26px; }
+    .pdl-banner p{ margin:3px 0 0; color:#b9cbe6; font-size:14px; }
+    .pdl-banner-right{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .pdl-tech{ display:inline-flex; align-items:center; gap:8px; background:#fff; border-radius:10px; padding:8px 12px; color:#0a2a52; font-weight:700; font-size:13px; }
+    .pdl-tech select{ border:none; background:transparent; font-weight:700; color:#0a2a52; font-size:14px; outline:none; }
+    .pdl-date{ position:relative; display:inline-flex; align-items:center; background:#fff; color:#0a2a52; border-radius:10px; padding:9px 14px; font-weight:700; font-size:14px; cursor:pointer; }
+    .pdl-date input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .pdl-date input::-webkit-calendar-picker-indicator{ position:absolute; inset:0; width:100%; height:100%; margin:0; cursor:pointer; }
+    .pdl-clock{ text-align:right; line-height:1.1; }
+    .pdl-clock b{ font-size:24px; }
+    .pdl-clock > span{ display:flex; align-items:center; gap:6px; justify-content:flex-end; color:#7fdca9; font-size:12px; margin-top:7px; animation:pdlblink 1.5s ease-in-out infinite; }
+    .pdl-clock i{ width:8px; height:8px; border-radius:50%; background:#3ecf8e; animation:pdlblink 1.5s ease-in-out infinite; }
+    @keyframes pdlblink{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
+    .pdl-today{ background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:11.5px; font-weight:700; border-radius:8px; padding:4px 9px; cursor:pointer; margin-top:3px; }
+    .pdl-today:hover{ background:rgba(255,255,255,.24); }
+
+    .pdl-stats{ display:flex; gap:16px; background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; align-items:stretch; transition:background .3s,border-color .3s; }
+    .pdl-stats.lvl-clear,.pdl-stats.lvl-good{ background:#a9dcbc; border:2px solid #146b3d; }
+    .pdl-stats.lvl-moderate{ background:#f6cd8c; border:2px solid #a96b12; }
+    .pdl-stats.lvl-high{ background:#f0b3aa; border:2px solid #922316; }
+    .pdl-cap{ color:#2563b0; font-size:12px; font-weight:800; letter-spacing:1.5px; }
+    .pdl-waiting{ flex:0 0 220px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; border-right:1px solid rgba(0,0,0,.08); }
+    .pdl-waiting b{ font-size:64px; color:#0a2a52; line-height:1; }
+    .lvl-clear .pdl-waiting b,.lvl-good .pdl-waiting b{ color:#1b7a45; }
+    .lvl-moderate .pdl-waiting b{ color:#b9741a; }
+    .lvl-high .pdl-waiting b{ color:#b23528; }
+    .pdl-status-box{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+    .pdl-status{ width:100%; text-align:center; padding:26px; border-radius:12px; font-size:30px; font-weight:800; color:#fff; letter-spacing:1px; }
+    .pdl-status.clear,.pdl-status.good{ background:linear-gradient(135deg,#2fae6d 0%,#1f8a53 100%); border:2.5px solid #146b3d; box-shadow:0 8px 22px rgba(31,138,83,.3); }
+    .pdl-status.moderate{ background:linear-gradient(135deg,#f0a83a 0%,#e08a1e 100%); border:2.5px solid #a96b12; box-shadow:0 8px 22px rgba(224,138,30,.32); }
+    .pdl-status.high{ background:linear-gradient(135deg,#e0574a 0%,#c0392b 100%); border:2.5px solid #922316; box-shadow:0 8px 22px rgba(192,57,43,.32); }
+
+    .pdl-table-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px 20px; border-top:3px solid #1e56a0; }
+    .pdl-table-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+    .pdl-table-head h3{ margin:0; color:var(--navy); font-size:18px; }
+    .pdl-avg{ background:var(--panel); color:var(--sub); font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:20px; }
+    .pdl-actions{ margin-left:auto; display:flex; gap:8px; }
+    .pdl-table-wrap{ overflow-x:auto; }
+    .pdl-table{ width:100%; border-collapse:collapse; font-size:13px; }
+    .pdl-table th{ text-align:center; color:var(--sub); font-size:11px; font-weight:800; letter-spacing:.5px; padding:8px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .pdl-table td{ padding:8px 8px; border-bottom:1px solid #f0f4f9; color:var(--ink); vertical-align:middle; text-align:center; }
+    .pdl-empty{ text-align:center; color:var(--sub); font-style:italic; padding:26px 0 !important; }
+    .pdl-name{ font-weight:700; color:var(--navy); white-space:nowrap; }
+    .pdl-dim{ color:#b3c3da; }
+    .pdl-center{ text-align:center; }
+    .pdl-in{ width:100%; min-width:56px; border:1px solid var(--line); border-radius:7px; padding:6px 8px; font-size:13px; outline:none; background:#fff; }
+    .pdl-in:focus{ border-color:var(--blue); }
+    .pdl-in.num{ max-width:72px; }
+    .pay{ display:inline-block; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:800; border:none; }
+    .pay-nocopay{ background:#eef2f7; color:#8fa0b5; }
+    .pay-btn{ cursor:pointer; position:relative; }
+    .pay-notposted{ background:#fbe0c0; color:#b06612; }
+    .pay-posted{ background:#d9f1e2; color:#1c7a3f; }
+    .pay-hover{ display:none; }
+    .pay-btn:hover .pay-normal{ display:none; }
+    .pay-btn:hover .pay-hover{ display:inline; }
+    .pay-btn.pay-notposted:hover{ background:#2e9e5b; color:#fff; }
+    .pay-btn.pay-posted:hover{ background:#fbe0c0; color:#b06612; }
+    .pdl-pill{ display:inline-block; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:800; white-space:nowrap; }
+    .pdl-pill.p-Waiting{ background:#f6c445; color:#6b4a06; }
+    .pdl-pill.p-InProgress{ background:#2f7be0; color:#fff; }
+    .pdl-pill.p-Ready{ background:#7a3fc0; color:#fff; }
+    .pdl-pill.p-Completed{ background:#2e9e5b; color:#fff; }
+    .pdl-pill.p-NoShowLeft{ background:#d1503f; color:#fff; }
+    .pdl-noteicon{ background:none; border:none; cursor:pointer; color:#b3c3da; padding:4px; border-radius:6px; display:inline-flex; }
+    .pdl-noteicon:hover{ background:var(--panel); }
+    .pdl-noteicon.has{ color:#e0a11e; }
+    .pdl-actcell{ white-space:nowrap; display:flex; align-items:center; gap:6px; justify-content:center; }
+    .pdl-backslot{ flex:0 0 26px; display:inline-flex; justify-content:center; }
+    .pdl-actslot{ flex:0 0 118px; display:inline-flex; }
+    .pdl-act{ width:100%; border:none; border-radius:8px; color:#fff; font-size:12px; font-weight:800; padding:8px 10px; cursor:pointer; background:#103a6e; text-align:center; }
+    .pdl-act:hover:not(:disabled){ filter:brightness(1.08); }
+    .pdl-act:disabled{ opacity:.4; cursor:not-allowed; }
+    .pdl-back,.pdl-noshow,.pdl-trash{ background:none; border:none; cursor:pointer; padding:5px; border-radius:6px; display:inline-flex; align-items:center; }
+    .pdl-back{ color:#7c96bb; }
+    .pdl-back:hover{ color:var(--navy); background:var(--panel); }
+    .pdl-noshow{ color:#c99; }
+    .pdl-noshow:hover{ color:#c0392b; background:#fdecea; }
+    .pdl-trash{ color:#c7cfdb; }
+    .pdl-trash:hover{ color:#c0392b; background:#fdecea; }
+    .pdl-totals{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding-top:14px; margin-top:6px; border-top:1px solid var(--line); font-size:13px; color:var(--sub); }
+    .pdl-totals b{ color:var(--navy); }
+    .pdl-sep{ width:1px; height:16px; background:var(--line); }
+    .pdl-amber b{ color:#c77c1c; }
+    .pdl-green b{ color:#1e7d34; }
+
+    .pdl-modal-bg{ position:fixed; inset:0; background:rgba(10,25,50,.5); display:flex; align-items:center; justify-content:center; z-index:500; padding:20px; }
+    .pdl-modal{ width:100%; max-width:560px; background:#fff; border-radius:18px; padding:24px 26px; box-shadow:0 24px 70px rgba(0,0,0,.35); }
+    .pdl-modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .pdl-modal-head h2{ margin:0; color:var(--navy); font-size:22px; }
+    .pdl-x{ background:none; border:none; color:#c0392b; cursor:pointer; font-size:16px; padding:4px 8px; border-radius:6px; }
+    .pdl-x:hover{ background:#fdecea; }
+    .pdl-field{ display:block; margin-bottom:16px; }
+    .pdl-field > span{ display:block; font-size:14px; font-weight:700; color:var(--navy); margin-bottom:7px; }
+    .pdl-field em{ color:var(--sub); font-weight:500; font-style:normal; }
+    .pdl-field input,.pdl-field textarea{ width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:10px; padding:12px 14px; font-size:16px; outline:none; font-family:inherit; }
+    .pdl-field input:focus,.pdl-field textarea:focus{ border-color:var(--blue); }
+    .pdl-field textarea{ min-height:90px; resize:vertical; }
+    .pdl-modal-note{ background:#fff8ec; border-left:4px solid #e6a23c; border-radius:8px; padding:12px 14px; font-size:14px; color:#6b5836; margin-bottom:18px; }
+    .pdl-modal-foot{ display:flex; justify-content:flex-end; gap:10px; }
+    @media print{ .topbar,.pdl-actions,.pdl-tech,.pdl-date{ display:none; } }
   </style>
 </head>
 <body>
-  <div class="splash">
-    <img src="logo.png" alt="Mendez Medical Center">
-    <h1>Mendez Pharmacy</h1>
-    <p>Loading dashboard…</p>
-    <div class="spinner"></div>
-    <br>
-    <a class="manual-link" id="manualLink" href="#">Tap here if not redirected</a>
-  </div>
+  <div class="wrap" id="wrap"></div>
 
   <script>
-    // ============ APPS SCRIPT REDIRECT ============
-    // When this page loads, redirect to the live Pharmacy Dashboard
-    // (deployed Apps Script web app). Replace the URL below with the
-    // URL from your Apps Script "Manage deployments" panel.
-    var DASHBOARD_URL = "https://script.google.com/macros/s/AKfycbyEJsoeIoZfbtKC6vPOjZnTUaLFDr4rwM478XKXuhAyNK4-B0O0snQLzAWO5n6UhH7Zcw/exec";
+  (function(){
+    'use strict';
+    var TECHS = ['Bruno Bandeira','Carola Roca','Lauriangel Leon','Nicoll Oviedo','Yasmin Garcia','Other'];
+    var ADVANCE = {
+      'Waiting':{label:'Start',to:'In Progress',needTech:true},
+      'In Progress':{label:'Mark Ready',to:'Ready'},
+      'Ready':{label:'Complete',to:'Completed'},
+      'Completed':null,'No Show / Left':null
+    };
+    var BACK = {'Waiting':null,'In Progress':'Waiting','Ready':'In Progress','Completed':'Ready','No Show / Left':null};
+    function scls(s){ return s.replace(/[^a-zA-Z]/g,''); }
+    function todayKey(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+    function storeKeyFor(k){ return 'mmc-pharm-dailylog-'+k; }
+    function loadDay(k){ try{ return JSON.parse(localStorage.getItem(storeKeyFor(k))||'[]'); }catch(e){ return []; } }
+    function fmtTime(ts){ return new Date(ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}); }
+    function money(n){ return '$'+(n||0).toFixed(2); }
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function inQueue(s){ return s==='Waiting'||s==='In Progress'; }
 
-    // Set the manual fallback link in case auto-redirect is blocked
-    document.getElementById('manualLink').setAttribute('href', DASHBOARD_URL);
+    var S = {
+      selDate: todayKey(),
+      patients: loadDay(todayKey()),
+      tech: '',
+      now: Date.now(),
+      modal: false,
+      full: false
+    };
+    function isToday(){ return S.selDate===todayKey(); }
+    function persist(){ try{ localStorage.setItem(storeKeyFor(S.selDate), JSON.stringify(S.patients)); }catch(e){} }
+    function byId(id){ for(var i=0;i<S.patients.length;i++){ if(S.patients[i].id===id) return S.patients[i]; } return null; }
 
-    // Auto-redirect after a brief moment so the splash screen registers
-    // (helps iOS pick up the icon when added to home screen)
-    setTimeout(function () {
-      window.location.replace(DASHBOARD_URL);
-    }, 400);
+    // ---- derived ----
+    function waitingCount(){ return S.patients.filter(function(p){ return p.status==='Waiting'||p.status==='In Progress'; }).length; }
+    function levelOf(w){ return w===0?'clear':w<=3?'good':w<=5?'moderate':'high'; }
+    var LEVEL_LABEL = {clear:'PHARMACY IS CLEAR',good:'GOOD',moderate:'MODERATE',high:'HIGH'};
+    function totals(){
+      var posted = S.patients.filter(function(p){ return p.payment==='Posted'; });
+      return {
+        count: S.patients.length,
+        rx: S.patients.reduce(function(s,p){ return s+(p.rx||0); },0),
+        debit: posted.reduce(function(s,p){ return s+(p.debit||0); },0),
+        cash: posted.reduce(function(s,p){ return s+(p.cash||0); },0),
+        notPosted: S.patients.filter(function(p){ return p.payment==='Not Posted'; }).reduce(function(s,p){ return s+(p.debit||0)+(p.cash||0); },0),
+        postedTotal: posted.reduce(function(s,p){ return s+(p.debit||0)+(p.cash||0); },0)
+      };
+    }
+    function avgWait(){
+      var f = S.patients.filter(function(p){ return p.readyAt; });
+      if(!f.length) return null;
+      return Math.round(f.reduce(function(s,p){ return s+(p.readyAt-p.createdAt); },0)/f.length/60000);
+    }
+    function waitText(p){
+      if(p.readyAt) return Math.max(0,Math.round((p.readyAt-p.createdAt)/60000))+'m';
+      if(isToday() && inQueue(p.status)) return Math.max(0,Math.floor((S.now-p.createdAt)/60000))+'m';
+      return '—';
+    }
+
+    // ---- actions ----
+    function update(id,patch){ var p=byId(id); if(!p) return; for(var k in patch) p[k]=patch[k]; persist(); }
+    function addPatient(name,notes){
+      if(!name.trim()) return;
+      S.patients.push({ id:Math.random().toString(36).slice(2), createdAt:Date.now(),
+        name:name.trim().toUpperCase(), notes:notes.trim(), status:'Waiting',
+        prevStatus:undefined, employee:'', provider:'', rx:0, debit:0, cash:0, payment:'No Copay', del:false });
+      persist(); S.modal=false; render();
+    }
+    function advance(p){
+      var a=ADVANCE[p.status]; if(!a||(a.needTech&&!S.tech)) return;
+      var patch={status:a.to};
+      if(!p.employee&&S.tech) patch.employee=S.tech;
+      if(a.to==='Ready'&&!p.readyAt) patch.readyAt=Date.now();
+      update(p.id,patch); render();
+    }
+    function back(p){
+      if(p.status==='No Show / Left'){ update(p.id,{status:p.prevStatus||'Waiting',prevStatus:undefined}); render(); return; }
+      var b=BACK[p.status]; if(b){ update(p.id,{status:b}); render(); }
+    }
+    function noShow(p){ update(p.id,{status:'No Show / Left',prevStatus:p.status}); render(); }
+    function setMoney(p,field,val){
+      var debit=field==='debit'?val:p.debit, cash=field==='cash'?val:p.cash;
+      var hasMoney=(debit||0)+(cash||0)>0, payment=p.payment;
+      if(!hasMoney) payment='No Copay'; else if(payment==='No Copay') payment='Not Posted';
+      p[field]=val; p.payment=payment; persist();
+    }
+    function changeDate(d){ if(!d||d===S.selDate) return; S.selDate=d; S.patients=loadDay(d); S.modal=false; render(); }
+
+    // ---- render pieces ----
+    function statsHTML(){
+      var w=waitingCount(), lvl=levelOf(w);
+      return '<div class="pdl-stats lvl-'+lvl+'" id="pdl-stats">'+
+        '<div class="pdl-waiting"><span class="pdl-cap">CURRENTLY WAITING</span><b>'+w+'</b><span class="pdl-cap">PATIENT(S)</span></div>'+
+        '<div class="pdl-status-box"><span class="pdl-cap">PHARMACY WAIT TIME STATUS</span>'+
+        '<div class="pdl-status '+lvl+'">'+LEVEL_LABEL[lvl]+'</div></div></div>';
+    }
+    function totalsHTML(){
+      var t=totals();
+      return '<div class="pdl-totals" id="pdl-totals">'+
+        '<span><b>'+t.count+'</b> patients today</span>'+
+        '<span><b>'+t.rx+'</b> total Rx</span>'+
+        '<span class="pdl-sep"></span>'+
+        '<span><b>'+money(t.debit)+'</b> debit</span>'+
+        '<span><b>'+money(t.cash)+'</b> cash</span>'+
+        '<span class="pdl-amber"><b>'+money(t.notPosted)+'</b> total not posted</span>'+
+        '<span class="pdl-green"><b>'+money(t.postedTotal)+'</b> total posted</span></div>';
+    }
+    function avgHTML(){ var a=avgWait(); return 'AVG WAIT — '+(a!=null?a+' min':'no ready patients yet'); }
+    function paymentCellHTML(p){
+      if(p.payment==='No Copay') return '<span class="pay pay-nocopay">No Copay</span>';
+      var cls=p.payment==='Posted'?'pay-posted':'pay-notposted';
+      var hover=p.payment==='Posted'?'Un-post':'Mark Posted';
+      return '<button class="pay pay-btn '+cls+'" data-action="paytoggle" data-id="'+p.id+'" title="'+(p.payment==='Posted'?'Click to un-post':'Click to mark posted')+'">'+
+        '<span class="pay-normal">'+p.payment+'</span><span class="pay-hover">'+hover+'</span></button>';
+    }
+    var NOTE_SVG='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>';
+    var TRASH_SVG='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>';
+    var BACK_SVG='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>';
+    var NOSHOW_SVG='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>';
+
+    function rowHTML(p,i){
+      var adv=ADVANCE[p.status];
+      var canBack = p.status==='No Show / Left' ? !!p.prevStatus : !!BACK[p.status];
+      return '<tr class="row-'+scls(p.status)+'">'+
+        '<td>'+(i+1)+'</td>'+
+        '<td>'+fmtTime(p.createdAt)+'</td>'+
+        '<td class="pdl-wait" data-id="'+p.id+'">'+waitText(p)+'</td>'+
+        '<td>'+(p.employee?esc(p.employee):'<span class="pdl-dim">—</span>')+'</td>'+
+        '<td class="pdl-name">'+esc(p.name)+'</td>'+
+        '<td class="pdl-center"><button class="pdl-noteicon'+(p.notes?' has':'')+'" data-action="note" data-id="'+p.id+'" title="'+esc(p.notes||'Add note')+'">'+NOTE_SVG+'</button></td>'+
+        '<td><span class="pdl-pill p-'+scls(p.status)+'">'+p.status+'</span></td>'+
+        '<td><input class="pdl-in" data-field="provider" data-id="'+p.id+'" value="'+esc(p.provider)+'" placeholder="—"></td>'+
+        '<td><input class="pdl-in num" type="number" min="0" data-field="rx" data-id="'+p.id+'" value="'+(p.rx||'')+'" placeholder="0"></td>'+
+        '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="debit" data-id="'+p.id+'" value="'+(p.debit||'')+'" placeholder="0"></td>'+
+        '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
+        '<td class="pdl-pay-cell" data-id="'+p.id+'">'+paymentCellHTML(p)+'</td>'+
+        '<td class="pdl-center"><input type="checkbox" data-field="del" data-id="'+p.id+'"'+(p.del?' checked':'')+'></td>'+
+        '<td class="pdl-actcell">'+
+          '<button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+
+          '<span class="pdl-backslot">'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+'</span>'+
+          '<span class="pdl-actslot">'+(adv?'<button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button>':'')+'</span>'+
+          (p.status==='Completed'?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+
+        '</td></tr>';
+    }
+
+    function render(){
+      var dateLabel=new Date(S.selDate+'T00:00:00').toLocaleDateString([],{month:'long',day:'numeric',year:'numeric'});
+      var rows = S.patients.length===0
+        ? '<tr><td colspan="14" class="pdl-empty">No patients yet today. Click "+ Add Patient" to start.</td></tr>'
+        : S.patients.map(function(p,i){ return rowHTML(p,i); }).join('');
+
+      var html =
+        '<div class="topbar"><img src="logo.png" alt="Mendez"><b>Mendez Pharmacy</b><span>· Daily Log</span></div>'+
+        '<div class="pdl'+(S.full?' pdl-fs':'')+'">'+
+          '<div class="pdl-banner">'+
+            '<div><h1>Pharmacy Daily Log</h1><p>Today\'s patient activity and totals.</p></div>'+
+            '<div class="pdl-banner-right">'+
+              '<label class="pdl-tech"><span>TECH:</span><select data-role="tech">'+
+                '<option value="">Select your name…</option>'+
+                TECHS.map(function(t){ return '<option value="'+esc(t)+'"'+(S.tech===t?' selected':'')+'>'+esc(t)+'</option>'; }).join('')+
+              '</select></label>'+
+              '<label class="pdl-date"><span>📅 '+dateLabel+'</span><input type="date" value="'+S.selDate+'" max="'+todayKey()+'" data-role="date"></label>'+
+              '<div class="pdl-clock"><b id="pdl-clock-time">'+fmtTime(S.now)+'</b>'+
+                (isToday()?'<span id="pdl-clock-sub"><i></i> Live · updated '+fmtTime(S.now)+'</span>':'<button class="pdl-today" data-action="today">← Back to today</button>')+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+          statsHTML()+
+          '<div class="pdl-table-card">'+
+            '<div class="pdl-table-head"><h3>👥 Today\'s Patients</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
+              '<div class="pdl-actions">'+
+                '<button class="btn ghost" data-action="refresh">↻ Refresh</button>'+
+                '<button class="btn ghost" data-action="print">🖨 Print</button>'+
+                '<button class="btn ghost" data-action="full">⛶ '+(S.full?'Exit full screen':'Full screen')+'</button>'+
+                '<button class="btn primary" data-action="add">+ Add Patient</button>'+
+              '</div>'+
+            '</div>'+
+            '<div class="pdl-table-wrap"><table class="pdl-table"><thead><tr>'+
+              '<th>#</th><th>Time</th><th>Wait</th><th>Employee</th><th>Patient Name</th><th>Notes</th><th>Status</th><th>Provider</th><th># of Rx</th><th>Debit</th><th>Cash</th><th>Payment</th><th>Del.</th><th>Action</th>'+
+            '</tr></thead><tbody>'+rows+'</tbody></table></div>'+
+            totalsHTML()+
+          '</div>'+
+        '</div>'+
+        (S.modal?
+          '<div class="pdl-modal-bg" data-action="modalbg"><div class="pdl-modal" data-stop="1">'+
+            '<div class="pdl-modal-head"><h2>Add Patient</h2><button class="pdl-x" data-action="closex">✕</button></div>'+
+            '<label class="pdl-field"><span>Patient Name <em>(paste from office website)</em></span>'+
+              '<input id="pdl-fname" autofocus placeholder="e.g. SMITH, JOHN"></label>'+
+            '<label class="pdl-field"><span>Notes <em>(optional)</em></span>'+
+              '<textarea id="pdl-fnotes" placeholder="Type patient note here…"></textarea></label>'+
+            '<div class="pdl-modal-note">The patient will be added with status <b>Waiting</b>. The pharmacy tech who picks up this patient will fill in the rest.</div>'+
+            '<div class="pdl-modal-foot"><button class="btn ghost" data-action="closex">Cancel</button>'+
+              '<button class="btn primary" data-action="modaladd">Add Patient</button></div>'+
+          '</div></div>':'');
+
+      document.getElementById('wrap').innerHTML = html;
+      if(S.modal){ var f=document.getElementById('pdl-fname'); if(f){ f.focus(); f.addEventListener('keydown',function(e){ if(e.key==='Enter') doModalAdd(); }); } }
+    }
+
+    function doModalAdd(){ var n=document.getElementById('pdl-fname'), t=document.getElementById('pdl-fnotes'); if(n&&n.value.trim()) addPatient(n.value, t?t.value:''); }
+
+    // targeted refresh (no full re-render) — keeps table inputs focused
+    function refreshDerived(){
+      var st=document.getElementById('pdl-stats'); if(st) st.outerHTML=statsHTML();
+      var to=document.getElementById('pdl-totals'); if(to) to.outerHTML=totalsHTML();
+      var av=document.getElementById('pdl-avg'); if(av) av.innerHTML=avgHTML();
+    }
+
+    // ---- event delegation ----
+    var wrap=document.getElementById('wrap');
+    wrap.addEventListener('click',function(e){
+      var el=e.target.closest('[data-action]'); if(!el) return;
+      var a=el.getAttribute('data-action'), id=el.getAttribute('data-id'), p=id?byId(id):null;
+      if(a==='add'){ S.modal=true; render(); }
+      else if(a==='closex'){ S.modal=false; render(); }
+      else if(a==='modalbg'){ if(e.target===el){ S.modal=false; render(); } }
+      else if(a==='modaladd'){ doModalAdd(); }
+      else if(a==='advance'&&p){ advance(p); }
+      else if(a==='back'&&p){ back(p); }
+      else if(a==='noshow'&&p){ noShow(p); }
+      else if(a==='trash'&&p){ S.patients=S.patients.filter(function(x){ return x.id!==id; }); persist(); render(); }
+      else if(a==='note'&&p){ var n=window.prompt('Note for '+p.name, p.notes); if(n!==null){ update(id,{notes:n}); render(); } }
+      else if(a==='paytoggle'&&p){ update(id,{payment:p.payment==='Posted'?'Not Posted':'Posted'}); var cell=document.querySelector('.pdl-pay-cell[data-id="'+id+'"]'); if(cell) cell.innerHTML=paymentCellHTML(p); refreshDerived(); }
+      else if(a==='refresh'){ S.now=Date.now(); render(); }
+      else if(a==='print'){ window.print(); }
+      else if(a==='full'){ S.full=!S.full; render(); }
+      else if(a==='today'){ changeDate(todayKey()); }
+    });
+    wrap.addEventListener('input',function(e){
+      var el=e.target, field=el.getAttribute&&el.getAttribute('data-field'), id=el.getAttribute&&el.getAttribute('data-id');
+      if(!field||!id) return; var p=byId(id); if(!p) return;
+      if(field==='provider'){ p.provider=el.value; persist(); }
+      else if(field==='rx'){ p.rx=+el.value; persist(); refreshDerived(); }
+      else if(field==='debit'||field==='cash'){ setMoney(p,field,+el.value); var cell=document.querySelector('.pdl-pay-cell[data-id="'+id+'"]'); if(cell) cell.innerHTML=paymentCellHTML(p); refreshDerived(); }
+    });
+    wrap.addEventListener('change',function(e){
+      var el=e.target, role=el.getAttribute&&el.getAttribute('data-role'), field=el.getAttribute&&el.getAttribute('data-field'), id=el.getAttribute&&el.getAttribute('data-id');
+      if(role==='tech'){ S.tech=el.value; render(); }
+      else if(role==='date'){ changeDate(el.value); }
+      else if(field==='del'&&id){ update(id,{del:el.checked}); }
+    });
+    window.addEventListener('keydown',function(e){ if(e.key==='Escape'&&S.full){ S.full=false; render(); } });
+
+    // live clock — targeted, so it never clobbers an input you're typing in
+    setInterval(function(){
+      S.now=Date.now();
+      var ct=document.getElementById('pdl-clock-time'); if(ct) ct.textContent=fmtTime(S.now);
+      var cs=document.getElementById('pdl-clock-sub'); if(cs) cs.innerHTML='<i></i> Live · updated '+fmtTime(S.now);
+      if(isToday()){ var cells=document.querySelectorAll('.pdl-wait'); for(var i=0;i<cells.length;i++){ var p=byId(cells[i].getAttribute('data-id')); if(p) cells[i].textContent=waitText(p); } }
+      refreshDerived();
+    },1000);
+
+    render();
+  })();
   </script>
 </body>
 </html>
