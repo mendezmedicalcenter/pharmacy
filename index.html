@@ -350,7 +350,7 @@
       var html =
         '<div class="pdl'+(S.full?' pdl-fs':'')+'">'+
           '<div class="pdl-banner">'+
-            '<div><h1>Pharmacy Daily Log</h1><p>Today\'s patient activity and totals.</p></div>'+
+            '<div><h1>Pharmacy Queue</h1><p>Today\'s patients &amp; wait status.</p></div>'+
             '<div class="pdl-banner-right">'+
               '<label class="pdl-tech"><span>TECH:</span><select data-role="tech">'+
                 '<option value="">Select your name…</option>'+
@@ -362,11 +362,6 @@
               '</div>'+
             '</div>'+
           '</div>'+
-          '<div class="pv-tabs">'+
-            '<button class="pv-tab'+(curView==='dashboard'?' on':'')+'" data-action="view" data-view="dashboard">Dashboard</button>'+
-            '<button class="pv-tab'+(curView==='daily'?' on':'')+'" data-action="view" data-view="daily">Daily Log</button>'+
-          '</div>'+
-          '<div class="pv pv-dashboard">'+statsHTML()+overviewHTML()+'</div>'+
           '<div class="pv pv-daily">'+
           statsHTML('pdl-stats2')+
           '<div class="pdl-table-card">'+
@@ -483,9 +478,8 @@
     if(_embed) document.body.classList.add('embed');
     function _viewFromHash(){ return location.hash.replace(/^#/,'')==='daily'?'daily':'dashboard'; }
     if(_tv) S.full=true;
-    document.body.classList.add('view-'+(_tv?'daily':(_embed?_viewFromHash():'dashboard')));
+    document.body.classList.add('view-daily'); // single Queue view (Dashboard tab removed)
     render();
-    if(_embed) window.addEventListener('hashchange',function(){ applyView(_viewFromHash()); });
   })();
   </script>
 </body>
