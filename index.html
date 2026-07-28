@@ -417,6 +417,19 @@
       for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-view')===t); }
     }
 
+    // Real fullscreen so it covers the whole screen (hides the portal sidebar when embedded), with the CSS as fallback.
+    function toggleFull(){
+      S.full=!S.full;
+      var de=document.documentElement;
+      try{
+        if(S.full){ var rq=de.requestFullscreen||de.webkitRequestFullscreen; if(rq) rq.call(de); }
+        else if(document.fullscreenElement||document.webkitFullscreenElement){ var ex=document.exitFullscreen||document.webkitExitFullscreen; if(ex) ex.call(document); }
+      }catch(e){}
+      render();
+    }
+    document.addEventListener('fullscreenchange',function(){ var fs=!!(document.fullscreenElement||document.webkitFullscreenElement); if(!fs && S.full){ S.full=false; render(); } });
+    document.addEventListener('webkitfullscreenchange',function(){ var fs=!!(document.fullscreenElement||document.webkitFullscreenElement); if(!fs && S.full){ S.full=false; render(); } });
+
     // ---- event delegation ----
     var wrap=document.getElementById('wrap');
     wrap.addEventListener('click',function(e){
@@ -434,7 +447,7 @@
       else if(a==='paytoggle'&&p){ update(id,{payment:p.payment==='Posted'?'Not Posted':'Posted'}); var cell=document.querySelector('.pdl-pay-cell[data-id="'+id+'"]'); if(cell) cell.innerHTML=paymentCellHTML(p); refreshDerived(); }
       else if(a==='refresh'){ S.now=Date.now(); render(); }
       else if(a==='print'){ window.print(); }
-      else if(a==='full'){ S.full=!S.full; render(); }
+      else if(a==='full'){ toggleFull(); }
       else if(a==='view'){ applyView(el.getAttribute('data-view')); }
       else if(a==='today'){ changeDate(todayKey()); }
     });
