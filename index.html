@@ -66,6 +66,14 @@
     .pdl-status.clear,.pdl-status.good{ background:linear-gradient(135deg,#2fae6d 0%,#1f8a53 100%); border:2.5px solid #146b3d; box-shadow:0 8px 22px rgba(31,138,83,.3); }
     .pdl-status.moderate{ background:linear-gradient(135deg,#f0a83a 0%,#e08a1e 100%); border:2.5px solid #a96b12; box-shadow:0 8px 22px rgba(224,138,30,.32); }
     .pdl-status.high{ background:linear-gradient(135deg,#e0574a 0%,#c0392b 100%); border:2.5px solid #922316; box-shadow:0 8px 22px rgba(192,57,43,.32); }
+    /* TV / full-screen: hide the blue banner + tabs, slim the thermometer so the table has room */
+    .pdl-fs .pdl-banner, .pdl-fs .pv-tabs{ display:none; }
+    .pdl-fs #pdl-stats2{ padding:9px 18px; margin-bottom:12px; }
+    .pdl-fs #pdl-stats2 .pdl-waiting{ flex:0 0 180px; gap:1px; }
+    .pdl-fs #pdl-stats2 .pdl-waiting b{ font-size:38px; }
+    .pdl-fs #pdl-stats2 .pdl-status-box{ gap:5px; }
+    .pdl-fs #pdl-stats2 .pdl-status{ padding:11px 16px; font-size:26px; }
+    .pdl-fs #pdl-stats2 .pdl-cap{ font-size:11px; letter-spacing:1px; }
 
     .pdl-table-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px 20px; border-top:3px solid #1e56a0; }
     .pdl-table-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
@@ -457,9 +465,11 @@
     // view mode: embedded in the portal (?embed=1) hides the in-app tabs and takes
     // the view (dashboard / daily) from the URL hash; standalone defaults to dashboard.
     var _embed=/[?&]embed=1/.test(location.search);
+    var _tv=/[?&]tv=1/.test(location.search); // TV kiosk: open straight into full-screen Daily Log
     if(_embed) document.body.classList.add('embed');
     function _viewFromHash(){ return location.hash.replace(/^#/,'')==='daily'?'daily':'dashboard'; }
-    document.body.classList.add('view-'+(_embed?_viewFromHash():'dashboard'));
+    if(_tv) S.full=true;
+    document.body.classList.add('view-'+(_tv?'daily':(_embed?_viewFromHash():'dashboard')));
     render();
     if(_embed) window.addEventListener('hashchange',function(){ applyView(_viewFromHash()); });
   })();
