@@ -51,6 +51,7 @@
     .pdl-today:hover{ background:rgba(255,255,255,.24); }
 
     .pdl-stats{ display:flex; gap:16px; background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; align-items:stretch; transition:background .3s,border-color .3s; }
+    #pdl-stats2{ margin-bottom:16px; }
     .pdl-stats.lvl-clear,.pdl-stats.lvl-good{ background:#a9dcbc; border:2px solid #146b3d; }
     .pdl-stats.lvl-moderate{ background:#f6cd8c; border:2px solid #a96b12; }
     .pdl-stats.lvl-high{ background:#f0b3aa; border:2px solid #922316; }
@@ -251,9 +252,9 @@
     function changeDate(d){ if(!d||d===S.selDate) return; S.selDate=d; S.patients=loadDay(d); S.modal=false; render(); }
 
     // ---- render pieces ----
-    function statsHTML(){
+    function statsHTML(id){
       var w=waitingCount(), lvl=levelOf(w);
-      return '<div class="pdl-stats lvl-'+lvl+'" id="pdl-stats">'+
+      return '<div class="pdl-stats lvl-'+lvl+'" id="'+(id||'pdl-stats')+'">'+
         '<div class="pdl-waiting"><span class="pdl-cap">CURRENTLY WAITING</span><b>'+w+'</b><span class="pdl-cap">PATIENT(S)</span></div>'+
         '<div class="pdl-status-box"><span class="pdl-cap">PHARMACY WAIT TIME STATUS</span>'+
         '<div class="pdl-status '+lvl+'">'+LEVEL_LABEL[lvl]+'</div></div></div>';
@@ -358,6 +359,7 @@
           '</div>'+
           '<div class="pv pv-dashboard">'+statsHTML()+overviewHTML()+'</div>'+
           '<div class="pv pv-daily">'+
+          statsHTML('pdl-stats2')+
           '<div class="pdl-table-card">'+
             '<div class="pdl-table-head"><h3>👥 Today\'s Patients</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
               '<div class="pdl-actions">'+
@@ -394,7 +396,8 @@
 
     // targeted refresh (no full re-render) — keeps table inputs focused
     function refreshDerived(){
-      var st=document.getElementById('pdl-stats'); if(st) st.outerHTML=statsHTML();
+      var st=document.getElementById('pdl-stats'); if(st) st.outerHTML=statsHTML('pdl-stats');
+      var st2=document.getElementById('pdl-stats2'); if(st2) st2.outerHTML=statsHTML('pdl-stats2');
       var ov=document.getElementById('pdl-overview'); if(ov) ov.outerHTML=overviewHTML();
       var to=document.getElementById('pdl-totals'); if(to) to.outerHTML=totalsHTML();
       var av=document.getElementById('pdl-avg'); if(av) av.innerHTML=avgHTML();
