@@ -93,6 +93,10 @@
     .pdl-in{ width:100%; min-width:56px; border:1px solid var(--line); border-radius:7px; padding:6px 8px; font-size:13px; outline:none; background:#fff; }
     .pdl-in:focus{ border-color:var(--blue); }
     .pdl-in.num{ max-width:72px; }
+    .pdl-sel{ appearance:none; -webkit-appearance:none; -moz-appearance:none; width:100%; min-width:120px; max-width:160px; border:1px solid #e2e9f3; border-radius:9px; padding:6px 27px 6px 11px; font-size:12.5px; font-weight:600; color:#123a70; cursor:pointer; white-space:nowrap; text-overflow:ellipsis; text-align:center; text-align-last:center; background-color:#f5f8fd; background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='10'%20height='6'%20viewBox='0%200%2010%206'%3E%3Cpath%20d='M1%201l4%204%204-4'%20fill='none'%20stroke='%23516b90'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; transition:border-color .15s, background-color .15s, box-shadow .15s; }
+    .pdl-sel::-ms-expand{ display:none; }
+    .pdl-sel:hover{ background-color:#eef3fb; border-color:#cdd9ec; }
+    .pdl-sel:focus{ outline:none; border-color:var(--blue); background-color:#fff; box-shadow:0 0 0 3px rgba(37,99,176,.13); }
     .pay{ display:inline-block; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:800; border:none; }
     .pay-nocopay{ background:#eef2f7; color:#8fa0b5; }
     .pay-btn{ cursor:pointer; position:relative; }
@@ -208,6 +212,8 @@
     function isToday(){ return S.selDate===todayKey(); }
     function persist(){ try{ localStorage.setItem(storeKeyFor(S.selDate), JSON.stringify(S.patients)); }catch(e){} }
     function byId(id){ for(var i=0;i<S.patients.length;i++){ if(S.patients[i].id===id) return S.patients[i]; } return null; }
+    var PROVIDERS=['Aidee Fabre','Americo Hajaz','Juan Villarroel','Lecia Villames','Leopold Chery','Luis Arocha Yiong','Macmelsie Marrero','Marie Vales-Preval','Oscar Mendez','Victor Francisco'];
+    function provOpts(sel){ return '<option value="">Select</option>'+PROVIDERS.map(function(n){ return '<option'+(sel===n?' selected':'')+'>'+esc(n)+'</option>'; }).join(''); }
 
     // ---- Front Desk handoff: patients the Front Desk flagged "Rx" (Supabase visits.needs_meds) show up here live ----
     var FD_SUPA_URL='https://ukvjrxvvaokklxrhrhss.supabase.co', FD_SUPA_KEY='sb_publishable_4zeQ0_L3_zOWRQQBeXlSDg_TIm-OCZw';
@@ -352,7 +358,7 @@
         '<td class="pdl-name">'+esc(p.name)+(p.fdId?' <span class="pdl-fdtag" title="Sent from Front Desk">↪ FD</span>':'')+(p.dob?'<div class="pdl-dob">DOB '+esc(fmtDobShort(p.dob))+'</div>':'')+'</td>'+
         '<td class="pdl-center"><button class="pdl-noteicon'+(p.notes?' has':'')+'" data-action="note" data-id="'+p.id+'" title="'+esc(p.notes||'Add note')+'">'+NOTE_SVG+'</button></td>'+
         '<td><span class="pdl-pill p-'+scls(p.status)+'">'+p.status+'</span></td>'+
-        '<td><input class="pdl-in" data-field="provider" data-id="'+p.id+'" value="'+esc(p.provider)+'" placeholder="—"></td>'+
+        '<td><select class="pdl-sel" data-field="provider" data-id="'+p.id+'">'+provOpts(p.provider)+'</select></td>'+
         '<td><input class="pdl-in num" type="number" min="0" data-field="rx" data-id="'+p.id+'" value="'+(p.rx||'')+'" placeholder="0"></td>'+
         '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="debit" data-id="'+p.id+'" value="'+(p.debit||'')+'" placeholder="0"></td>'+
         '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
@@ -484,6 +490,7 @@
       var el=e.target, role=el.getAttribute&&el.getAttribute('data-role'), field=el.getAttribute&&el.getAttribute('data-field'), id=el.getAttribute&&el.getAttribute('data-id');
       if(role==='tech'){ S.tech=el.value; render(); }
       else if(role==='date'){ changeDate(el.value); }
+      else if(field==='provider'&&id){ var pp=byId(id); if(pp){ pp.provider=el.value; persist(); } }
       else if(field==='del'&&id){ update(id,{del:el.checked}); }
     });
     window.addEventListener('keydown',function(e){ if(e.key==='Escape'&&S.full){ S.full=false; render(); } });
