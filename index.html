@@ -98,6 +98,17 @@
     .pdl-sel option{ text-align:center; }
     .pdl-sel:hover{ background-color:#eef3fb; border-color:#cdd9ec; }
     .pdl-sel:focus{ outline:none; border-color:var(--blue); background-color:#fff; box-shadow:0 0 0 3px rgba(37,99,176,.13); }
+    .xsel{ position:relative; display:inline-flex; align-items:center; gap:7px; min-width:150px; max-width:100%; box-sizing:border-box; border:1px solid #e2e9f3; border-radius:9px; padding:6px 12px; font-size:12.5px; font-weight:600; color:#123a70; cursor:pointer; background:#f5f8fd; white-space:nowrap; user-select:none; transition:border-color .15s, background .15s, box-shadow .15s; }
+    .xsel:hover{ background:#eef3fb; border-color:#cdd9ec; }
+    .xsel.open{ border-color:var(--blue); background:#fff; box-shadow:0 0 0 3px rgba(37,99,176,.13); }
+    .xsel-val{ flex:1 1 auto; text-align:center; overflow:hidden; text-overflow:ellipsis; }
+    .xsel-cv{ width:10px; height:6px; flex:0 0 auto; }
+    .xsel-menu{ position:fixed; z-index:1000; background:#fff; border:1px solid #dbe6f5; border-radius:11px; box-shadow:0 14px 34px rgba(16,40,80,.18); padding:5px; max-height:300px; overflow-y:auto; }
+    .xsel-menu[hidden]{ display:none; }
+    .xsel-opt{ padding:8px 16px; border-radius:7px; font-size:12.5px; font-weight:600; color:#123a70; text-align:center; white-space:nowrap; cursor:pointer; }
+    .xsel-opt:hover{ background:#eef3fb; }
+    .xsel-opt.sel{ background:var(--blue); color:#fff; }
+    .xsel-opt.ph{ color:#8aa0bd; }
     .pay{ display:inline-block; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:800; border:none; }
     .pay-nocopay{ background:#eef2f7; color:#8fa0b5; }
     .pay-btn{ cursor:pointer; position:relative; }
@@ -214,7 +225,16 @@
     function persist(){ try{ localStorage.setItem(storeKeyFor(S.selDate), JSON.stringify(S.patients)); }catch(e){} }
     function byId(id){ for(var i=0;i<S.patients.length;i++){ if(S.patients[i].id===id) return S.patients[i]; } return null; }
     var PROVIDERS=['Aidee Fabre','Americo Hajaz','Juan Villarroel','Lecia Villames','Leopold Chery','Luis Arocha Yiong','Macmelsie Marrero','Marie Vales-Preval','Oscar Mendez','Victor Francisco'];
-    function provOpts(sel){ return '<option value="">Select</option>'+PROVIDERS.map(function(n){ return '<option'+(sel===n?' selected':'')+'>'+esc(n)+'</option>'; }).join(''); }
+    function xOptFlat(list,val){ return list.map(function(n){ return '<div class="xsel-opt'+(val===n?' sel':'')+'" data-v="'+esc(n)+'">'+esc(n)+'</div>'; }).join(''); }
+    function xselHTML(id,field,val,ph,optsInner){
+      var label=val||ph;
+      var phOpt='<div class="xsel-opt ph'+(val?'':' sel')+'" data-v="">'+esc(ph)+'</div>';
+      return '<div class="xsel'+(val?'':' isph')+'" data-id="'+id+'" data-field="'+field+'" tabindex="0"><span class="xsel-val">'+esc(label)+'</span>'+
+        '<svg class="xsel-cv" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="#516b90" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+        '<div class="xsel-menu" hidden>'+phOpt+optsInner+'</div></div>';
+    }
+    function closeAllXsel(){ var m=document.querySelectorAll('.xsel-menu'); for(var i=0;i<m.length;i++) m[i].hidden=true; var b=document.querySelectorAll('.xsel.open'); for(var j=0;j<b.length;j++) b[j].classList.remove('open'); }
+    function openXsel(box){ closeAllXsel(); var menu=box.querySelector('.xsel-menu'); if(!menu) return; var r=box.getBoundingClientRect(); menu.style.minWidth=r.width+'px'; menu.hidden=false; box.classList.add('open'); var mh=menu.offsetHeight, mw=menu.offsetWidth; var top=r.bottom+4; if(top+mh>window.innerHeight-8) top=Math.max(8,r.top-4-mh); var left=r.left+r.width/2-mw/2; if(left<6) left=6; if(left+mw>window.innerWidth-6) left=window.innerWidth-6-mw; menu.style.top=top+'px'; menu.style.left=left+'px'; var s=menu.querySelector('.xsel-opt.sel'); if(s) s.scrollIntoView({block:'nearest'}); }
 
     // ---- Front Desk handoff: patients the Front Desk flagged "Rx" (Supabase visits.needs_meds) show up here live ----
     var FD_SUPA_URL='https://ukvjrxvvaokklxrhrhss.supabase.co', FD_SUPA_KEY='sb_publishable_4zeQ0_L3_zOWRQQBeXlSDg_TIm-OCZw';
@@ -359,7 +379,7 @@
         '<td class="pdl-name">'+esc(p.name)+(p.fdId?' <span class="pdl-fdtag" title="Sent from Front Desk">↪ FD</span>':'')+(p.dob?'<div class="pdl-dob">DOB '+esc(fmtDobShort(p.dob))+'</div>':'')+'</td>'+
         '<td class="pdl-center"><button class="pdl-noteicon'+(p.notes?' has':'')+'" data-action="note" data-id="'+p.id+'" title="'+esc(p.notes||'Add note')+'">'+NOTE_SVG+'</button></td>'+
         '<td><span class="pdl-pill p-'+scls(p.status)+'">'+p.status+'</span></td>'+
-        '<td><select class="pdl-sel" data-field="provider" data-id="'+p.id+'">'+provOpts(p.provider)+'</select></td>'+
+        '<td>'+xselHTML(p.id,'provider',p.provider,'Select',xOptFlat(PROVIDERS,p.provider))+'</td>'+
         '<td><input class="pdl-in num" type="number" min="0" data-field="rx" data-id="'+p.id+'" value="'+(p.rx||'')+'" placeholder="0"></td>'+
         '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="debit" data-id="'+p.id+'" value="'+(p.debit||'')+'" placeholder="0"></td>'+
         '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
@@ -460,6 +480,16 @@
     document.addEventListener('webkitfullscreenchange',function(){ var fs=!!(document.fullscreenElement||document.webkitFullscreenElement); if(!fs && S.full){ S.full=false; render(); } });
 
     // ---- event delegation ----
+    document.addEventListener('click',function(e){
+      var t=e.target;
+      var xopt=t.closest&&t.closest('.xsel-opt');
+      if(xopt){ var xbox=xopt.closest('.xsel'); if(xbox){ var xp=byId(xbox.getAttribute('data-id')); if(xp){ xp[xbox.getAttribute('data-field')]=xopt.getAttribute('data-v'); persist(); render(); } } return; }
+      var xb=t.closest&&t.closest('.xsel');
+      if(xb){ if(xb.querySelector('.xsel-menu').hidden) openXsel(xb); else closeAllXsel(); return; }
+      closeAllXsel();
+    });
+    window.addEventListener('scroll', function(e){ if(e.target&&e.target.closest&&e.target.closest('.xsel-menu')) return; closeAllXsel(); }, true);
+    window.addEventListener('resize', closeAllXsel);
     var wrap=document.getElementById('wrap');
     wrap.addEventListener('click',function(e){
       var el=e.target.closest('[data-action]'); if(!el) return;
