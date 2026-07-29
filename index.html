@@ -169,11 +169,8 @@
     .pdo-card.t-blue{ border-top-color:#2f6bd8; } .pdo-card.t-blue .pdo-icon{ background:rgba(37,99,235,.12); color:#2f6bd8; }
     .pdo-card.t-indigo{ border-top-color:#5b4bd8; } .pdo-card.t-indigo .pdo-icon{ background:rgba(91,75,216,.12); color:#5b4bd8; }
     @media print{ .pv-tabs,.pdl-actions,.pdl-tech,.pdl-date{ display:none; } body.view-dashboard .pv-daily, body.view-daily .pv-dashboard{ display:block !important; } }
-    .pdl-handoff{ margin-bottom:16px; border:1px solid #f0c56a; background:#fff8e8; border-radius:14px; padding:14px 18px; }
-    .pdl-handoff-h{ font-weight:800; color:#9a6a12; font-size:14px; margin-bottom:6px; }
-    .pdl-handoff-row{ display:flex; align-items:center; gap:14px; padding:7px 0; border-top:1px solid #f0e0b8; }
-    .pdl-handoff-row b{ font-size:15px; color:#0a2a52; }
-    .pdl-handoff-row span{ font-size:12.5px; color:#6b7a90; }
+    .pdl-dob{ font-size:11px; color:#6b7a90; font-weight:600; margin-top:2px; }
+    .pdl-fdtag{ display:inline-block; font-size:10px; font-weight:800; color:#9a6a12; background:#fff3d6; border:1px solid #f0c56a; border-radius:6px; padding:1px 5px; vertical-align:middle; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -217,11 +214,20 @@
     var fdsb=null, handoffs=[], fdWired=false;
     function fdClient(){ if(!fdsb){ try{ if(window.supabase) fdsb=window.supabase.createClient(FD_SUPA_URL,FD_SUPA_KEY); }catch(e){} } return fdsb; }
     function fmtDobShort(d){ if(!d) return ''; var p=String(d).split('-'); return p.length===3?(p[1]+'/'+p[2]+'/'+p[0]):d; }
-    function fetchHandoffs(){ var c=fdClient(); if(!c) return; c.from('visits').select('id,first_name,last_name,dob,provider,insurance').eq('day',S.selDate).eq('needs_meds',true).then(function(r){ if(r&&!r.error){ handoffs=r.data||[]; var el=document.getElementById('pdl-handoff'); if(el) el.outerHTML=handoffHTML(); } }); }
-    function handoffHTML(){
-      if(!handoffs.length) return '<div id="pdl-handoff"></div>';
-      return '<div id="pdl-handoff" class="pdl-handoff"><div class="pdl-handoff-h">↪ Sent from Front Desk — needs meds ('+handoffs.length+')</div>'+
-        handoffs.map(function(h){ var nm=((h.last_name||'')+(h.first_name?(', '+h.first_name):'')); return '<div class="pdl-handoff-row"><b>'+esc(nm)+'</b>'+(h.dob?'<span>DOB '+esc(fmtDobShort(h.dob))+'</span>':'')+(h.provider?'<span>'+esc(h.provider)+'</span>':'')+(h.insurance?'<span>'+esc(h.insurance)+'</span>':'')+'</div>'; }).join('')+'</div>';
+    function fetchHandoffs(){ var c=fdClient(); if(!c) return; c.from('visits').select('id,first_name,last_name,dob,provider').eq('day',S.selDate).eq('needs_meds',true).then(function(r){ if(r&&!r.error){ importHandoffs(r.data||[]); } }); }
+    function importHandoffs(list){
+      var existing={}; S.patients.forEach(function(p){ if(p.fdId) existing[p.fdId]=true; });
+      var added=false;
+      list.forEach(function(h){
+        if(existing[h.id]) return;
+        var nm=((h.last_name||'')+(h.first_name?(', '+h.first_name):'')).trim();
+        if(!nm) return;
+        S.patients.push({ id:Math.random().toString(36).slice(2), createdAt:Date.now(), fdId:h.id,
+          name:nm.toUpperCase(), dob:h.dob||'', notes:'', status:'Waiting', prevStatus:undefined,
+          employee:'', provider:h.provider||'', rx:0, debit:0, cash:0, payment:'No Copay', del:false });
+        added=true;
+      });
+      if(added){ persist(); render(); }
     }
     function initHandoffs(){ if(fdWired){ fetchHandoffs(); return; } var c=fdClient(); if(!c){ setTimeout(initHandoffs,400); return; } fdWired=true; fetchHandoffs(); try{ c.channel('fd-handoff').on('postgres_changes',{event:'*',schema:'public',table:'visits'},function(){ fetchHandoffs(); }).subscribe(); }catch(e){} }
 
@@ -256,7 +262,7 @@
     function addPatient(name,notes){
       if(!name.trim()) return;
       S.patients.push({ id:Math.random().toString(36).slice(2), createdAt:Date.now(),
-        name:name.trim().toUpperCase(), notes:notes.trim(), status:'Waiting',
+        name:name.trim().toUpperCase(), dob:'', notes:notes.trim(), status:'Waiting',
         prevStatus:undefined, employee:'', provider:'', rx:0, debit:0, cash:0, payment:'No Copay', del:false });
       persist(); S.modal=false; render();
     }
@@ -343,7 +349,7 @@
         '<td>'+fmtTime(p.createdAt)+'</td>'+
         '<td class="pdl-wait" data-id="'+p.id+'">'+waitText(p)+'</td>'+
         '<td>'+(p.employee?esc(p.employee):'<span class="pdl-dim">—</span>')+'</td>'+
-        '<td class="pdl-name">'+esc(p.name)+'</td>'+
+        '<td class="pdl-name">'+esc(p.name)+(p.fdId?' <span class="pdl-fdtag" title="Sent from Front Desk">↪ FD</span>':'')+(p.dob?'<div class="pdl-dob">DOB '+esc(fmtDobShort(p.dob))+'</div>':'')+'</td>'+
         '<td class="pdl-center"><button class="pdl-noteicon'+(p.notes?' has':'')+'" data-action="note" data-id="'+p.id+'" title="'+esc(p.notes||'Add note')+'">'+NOTE_SVG+'</button></td>'+
         '<td><span class="pdl-pill p-'+scls(p.status)+'">'+p.status+'</span></td>'+
         '<td><input class="pdl-in" data-field="provider" data-id="'+p.id+'" value="'+esc(p.provider)+'" placeholder="—"></td>'+
@@ -384,7 +390,6 @@
           '</div>'+
           '<div class="pv pv-daily">'+
           statsHTML('pdl-stats2')+
-          handoffHTML()+
           '<div class="pdl-table-card">'+
             '<div class="pdl-table-head"><h3>👥 Today\'s Patients</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
               '<div class="pdl-actions">'+
