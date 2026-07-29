@@ -24,10 +24,11 @@
     .topbar b{ color:var(--navy); font-size:18px; letter-spacing:-.2px; }
     .topbar span{ color:var(--sub); font-size:13px; }
 
-    .btn{ border:none; border-radius:10px; font-size:15px; font-weight:600; padding:11px 20px; cursor:pointer; transition:background .15s,opacity .15s; }
+    .btn{ border:none; border-radius:10px; font-size:15px; font-weight:600; padding:11px 20px; cursor:pointer; transition:background .15s,opacity .15s; display:inline-flex; align-items:center; justify-content:center; gap:6px; line-height:1; }
+    .btn svg{ width:16px; height:16px; flex:0 0 auto; }
     .btn.primary{ background:var(--blue); color:#fff; }
     .btn.primary:hover{ background:#1e56a0; }
-    .btn.ghost{ background:transparent; color:var(--navy); padding-left:6px; }
+    .btn.ghost{ background:transparent; color:var(--navy); padding:9px 16px; font-size:13px; font-weight:700; letter-spacing:.2px; }
     .btn.ghost:hover{ color:var(--blue); }
     .btn:disabled{ opacity:.45; cursor:not-allowed; }
 
@@ -387,9 +388,9 @@
           '<div class="pdl-table-card">'+
             '<div class="pdl-table-head"><h3>👥 Today\'s Patients</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
               '<div class="pdl-actions">'+
-                '<button class="btn ghost" data-action="refresh">↻ Refresh</button>'+
-                '<button class="btn ghost" data-action="print">🖨 Print</button>'+
-                '<button class="btn ghost" data-action="full">⛶ '+(S.full?'Exit full screen':'Full screen')+'</button>'+
+                '<button class="btn ghost" data-action="refresh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 A8 8 0 0 1 18.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M19 3 V8 H14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 12 A8 8 0 0 1 5.5 16.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M5 21 V16 H10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>Refresh</button>'+
+                '<button class="btn ghost" data-action="print"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9 V4 H17 V9 M7 19 H5 V12 H19 V19 H17 M7 14 H17 V21 H7 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>Print</button>'+
+                '<button class="btn ghost" data-action="full"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 V4 H9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 9 V4 H15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 15 V20 H9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 15 V20 H15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>'+(S.full?'Exit full screen':'Full screen')+'</button>'+
                 '<button class="btn primary" data-action="add">+ Add Patient</button>'+
               '</div>'+
             '</div>'+
