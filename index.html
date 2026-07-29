@@ -80,7 +80,7 @@
     .pdl-table-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px 20px; border-top:3px solid #1e56a0; }
     .pdl-table-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
     .pdl-table-head h3{ margin:0; color:var(--navy); font-size:18px; }
-    .pdl-avg{ background:var(--panel); color:var(--sub); font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:20px; }
+    .pdl-avg{ background:transparent; color:var(--sub); font-size:12.5px; font-weight:700; padding:6px 0; }
     .pdl-actions{ margin-left:auto; display:flex; gap:8px; }
     .pdl-table-wrap{ overflow-x:auto; }
     .pdl-table{ width:100%; border-collapse:collapse; font-size:13px; }
@@ -391,7 +391,7 @@
           '<div class="pv pv-daily">'+
           statsHTML('pdl-stats2')+
           '<div class="pdl-table-card">'+
-            '<div class="pdl-table-head"><h3>👥 Today\'s Patients</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
+            '<div class="pdl-table-head"><h3>👥 Today\'s Queue</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
               '<div class="pdl-actions">'+
                 '<button class="btn ghost" data-action="refresh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 A8 8 0 0 1 18.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M19 3 V8 H14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 12 A8 8 0 0 1 5.5 16.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M5 21 V16 H10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>Refresh</button>'+
                 '<button class="btn ghost" data-action="print"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9 V4 H17 V9 M7 19 H5 V12 H19 V19 H17 M7 14 H17 V21 H7 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>Print</button>'+
