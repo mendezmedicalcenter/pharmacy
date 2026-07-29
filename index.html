@@ -168,7 +168,13 @@
     .pdo-card.t-blue{ border-top-color:#2f6bd8; } .pdo-card.t-blue .pdo-icon{ background:rgba(37,99,235,.12); color:#2f6bd8; }
     .pdo-card.t-indigo{ border-top-color:#5b4bd8; } .pdo-card.t-indigo .pdo-icon{ background:rgba(91,75,216,.12); color:#5b4bd8; }
     @media print{ .pv-tabs,.pdl-actions,.pdl-tech,.pdl-date{ display:none; } body.view-dashboard .pv-daily, body.view-daily .pv-dashboard{ display:block !important; } }
+    .pdl-handoff{ margin-bottom:16px; border:1px solid #f0c56a; background:#fff8e8; border-radius:14px; padding:14px 18px; }
+    .pdl-handoff-h{ font-weight:800; color:#9a6a12; font-size:14px; margin-bottom:6px; }
+    .pdl-handoff-row{ display:flex; align-items:center; gap:14px; padding:7px 0; border-top:1px solid #f0e0b8; }
+    .pdl-handoff-row b{ font-size:15px; color:#0a2a52; }
+    .pdl-handoff-row span{ font-size:12.5px; color:#6b7a90; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="wrap" id="wrap"></div>
@@ -204,6 +210,19 @@
     function isToday(){ return S.selDate===todayKey(); }
     function persist(){ try{ localStorage.setItem(storeKeyFor(S.selDate), JSON.stringify(S.patients)); }catch(e){} }
     function byId(id){ for(var i=0;i<S.patients.length;i++){ if(S.patients[i].id===id) return S.patients[i]; } return null; }
+
+    // ---- Front Desk handoff: patients the Front Desk flagged "Rx" (Supabase visits.needs_meds) show up here live ----
+    var FD_SUPA_URL='https://ukvjrxvvaokklxrhrhss.supabase.co', FD_SUPA_KEY='sb_publishable_4zeQ0_L3_zOWRQQBeXlSDg_TIm-OCZw';
+    var fdsb=null, handoffs=[], fdWired=false;
+    function fdClient(){ if(!fdsb){ try{ if(window.supabase) fdsb=window.supabase.createClient(FD_SUPA_URL,FD_SUPA_KEY); }catch(e){} } return fdsb; }
+    function fmtDobShort(d){ if(!d) return ''; var p=String(d).split('-'); return p.length===3?(p[1]+'/'+p[2]+'/'+p[0]):d; }
+    function fetchHandoffs(){ var c=fdClient(); if(!c) return; c.from('visits').select('id,first_name,last_name,dob,provider,insurance').eq('day',S.selDate).eq('needs_meds',true).then(function(r){ if(r&&!r.error){ handoffs=r.data||[]; var el=document.getElementById('pdl-handoff'); if(el) el.outerHTML=handoffHTML(); } }); }
+    function handoffHTML(){
+      if(!handoffs.length) return '<div id="pdl-handoff"></div>';
+      return '<div id="pdl-handoff" class="pdl-handoff"><div class="pdl-handoff-h">↪ Sent from Front Desk — needs meds ('+handoffs.length+')</div>'+
+        handoffs.map(function(h){ var nm=((h.last_name||'')+(h.first_name?(', '+h.first_name):'')); return '<div class="pdl-handoff-row"><b>'+esc(nm)+'</b>'+(h.dob?'<span>DOB '+esc(fmtDobShort(h.dob))+'</span>':'')+(h.provider?'<span>'+esc(h.provider)+'</span>':'')+(h.insurance?'<span>'+esc(h.insurance)+'</span>':'')+'</div>'; }).join('')+'</div>';
+    }
+    function initHandoffs(){ if(fdWired){ fetchHandoffs(); return; } var c=fdClient(); if(!c){ setTimeout(initHandoffs,400); return; } fdWired=true; fetchHandoffs(); try{ c.channel('fd-handoff').on('postgres_changes',{event:'*',schema:'public',table:'visits'},function(){ fetchHandoffs(); }).subscribe(); }catch(e){} }
 
     // ---- derived ----
     function waitingCount(){ return S.patients.filter(function(p){ return p.status==='Waiting'||p.status==='In Progress'; }).length; }
@@ -364,6 +383,7 @@
           '</div>'+
           '<div class="pv pv-daily">'+
           statsHTML('pdl-stats2')+
+          handoffHTML()+
           '<div class="pdl-table-card">'+
             '<div class="pdl-table-head"><h3>👥 Today\'s Patients</h3><span class="pdl-avg" id="pdl-avg">'+avgHTML()+'</span>'+
               '<div class="pdl-actions">'+
@@ -480,6 +500,7 @@
     if(_tv) S.full=true;
     document.body.classList.add('view-daily'); // single Queue view (Dashboard tab removed)
     render();
+    initHandoffs(); // live-read patients the Front Desk flagged "Rx"
   })();
   </script>
 </body>
