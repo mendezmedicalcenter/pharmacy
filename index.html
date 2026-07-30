@@ -120,6 +120,7 @@
     .pay-btn.pay-notposted:hover{ background:#2e9e5b; color:#fff; }
     .pay-btn.pay-posted:hover{ background:#fbe0c0; color:#b06612; }
     .pdl-pill{ display:inline-flex; align-items:center; justify-content:center; min-height:26px; padding:0 12px; border-radius:9px; font-size:11px; font-weight:800; line-height:1; white-space:nowrap; }
+    .pdl-pill.p-Coming{ background:#dbe8fb; color:#1d4f9e; }
     .pdl-pill.p-Waiting{ background:#f6c445; color:#6b4a06; }
     .pdl-pill.p-InProgress{ background:#2f7be0; color:#fff; }
     .pdl-pill.p-Ready{ background:#7a3fc0; color:#fff; }
@@ -198,12 +199,13 @@
     'use strict';
     var TECHS = ['Bruno Bandeira','Carola Roca','Lauriangel Leon','Nicoll Oviedo','Yasmin Garcia','Other'];
     var ADVANCE = {
+      'Coming':{label:'✓ Arrived',to:'Waiting'},
       'Waiting':{label:'Start',to:'In Progress',needTech:true},
       'In Progress':{label:'Mark Ready',to:'Ready'},
       'Ready':{label:'Complete',to:'Completed'},
       'Completed':null,'No Show / Left':null
     };
-    var BACK = {'Waiting':null,'In Progress':'Waiting','Ready':'In Progress','Completed':'Ready','No Show / Left':null};
+    var BACK = {'Coming':null,'Waiting':null,'In Progress':'Waiting','Ready':'In Progress','Completed':'Ready','No Show / Left':null};
     function scls(s){ return s.replace(/[^a-zA-Z]/g,''); }
     function todayKey(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
     function storeKeyFor(k){ return 'mmc-pharm-dailylog-'+k; }
@@ -250,7 +252,7 @@
         var nm=((h.last_name||'')+(h.first_name?(', '+h.first_name):'')).trim();
         if(!nm) return;
         S.patients.push({ id:Math.random().toString(36).slice(2), createdAt:Date.now(), fdId:h.id,
-          name:nm.toUpperCase(), dob:h.dob||'', notes:'', status:'Waiting', prevStatus:undefined,
+          name:nm.toUpperCase(), dob:h.dob||'', notes:'', status:'Coming', prevStatus:undefined,
           employee:'', provider:h.provider||'', rx:0, debit:0, cash:0, payment:'No Copay', del:false });
         added=true;
       });
@@ -296,6 +298,7 @@
     function advance(p){
       var a=ADVANCE[p.status]; if(!a||(a.needTech&&!S.tech)) return;
       var patch={status:a.to};
+      if(p.status==='Coming'&&a.to==='Waiting') patch.createdAt=Date.now(); // wait timer starts when they arrive at the pharmacy
       if(!p.employee&&S.tech) patch.employee=S.tech;
       if(a.to==='Ready'&&!p.readyAt) patch.readyAt=Date.now();
       update(p.id,patch); render();
