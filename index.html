@@ -199,7 +199,7 @@
     'use strict';
     var TECHS = ['Bruno Bandeira','Carola Roca','Lauriangel Leon','Nicoll Oviedo','Yasmin Garcia','Other'];
     var ADVANCE = {
-      'Checking out':{label:'✓ Arrived',to:'Waiting'},
+      'Checking out':{label:'Start',to:'In Progress',needTech:true},
       'Waiting':{label:'Start',to:'In Progress',needTech:true},
       'In Progress':{label:'Mark Ready',to:'Ready'},
       'Ready':{label:'Complete',to:'Completed'},
@@ -298,7 +298,7 @@
     function advance(p){
       var a=ADVANCE[p.status]; if(!a||(a.needTech&&!S.tech)) return;
       var patch={status:a.to};
-      if(p.status==='Checking out'&&a.to==='Waiting') patch.createdAt=Date.now(); // wait timer starts when they arrive at the pharmacy
+      if(p.status==='Checking out') patch.createdAt=Date.now(); // timer starts when the tech begins working the Rx
       if(!p.employee&&S.tech) patch.employee=S.tech;
       if(a.to==='Ready'&&!p.readyAt) patch.readyAt=Date.now();
       update(p.id,patch); render();
