@@ -129,10 +129,10 @@
     .pdl-noteicon{ background:none; border:none; cursor:pointer; color:#b3c3da; padding:4px; border-radius:6px; display:inline-flex; }
     .pdl-noteicon:hover{ background:var(--panel); }
     .pdl-noteicon.has{ color:#e0a11e; }
-    .pdl-actcell{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6px; }
+    .pdl-actcell{ display:flex; align-items:center; justify-content:center; gap:8px; }
+    .pdl-actcell.has-adv{ display:grid; grid-template-columns:1fr auto 1fr; gap:6px; }
     .pdl-act-left{ justify-self:start; display:inline-flex; align-items:center; gap:6px; }
     .pdl-act-mid{ justify-self:center; display:inline-flex; align-items:center; }
-    .pdl-done{ color:#1e7d34; font-weight:800; font-size:12px; white-space:nowrap; }
     .pdl-act-right{ justify-self:end; display:inline-flex; align-items:center; }
     .pdl-mcell{ white-space:nowrap; }
     .pdl-dol{ color:#1c7a3f; font-weight:800; font-size:12px; margin-right:2px; }
@@ -396,13 +396,13 @@
         '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
         '<td class="pdl-pay-cell" data-id="'+p.id+'">'+paymentCellHTML(p)+'</td>'+
         '<td class="pdl-center"><input type="checkbox" data-field="del" data-id="'+p.id+'"'+(p.del?' checked':'')+'></td>'+
-        '<td class="pdl-actcell">'+
-          '<span class="pdl-act-left">'+
-            '<button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+
-            (canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+
-          '</span>'+
-          '<span class="pdl-act-mid">'+(adv?'<button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button>':(p.status==='Completed'?'<span class="pdl-done">✓ Done</span>':''))+'</span>'+
-          '<span class="pdl-act-right">'+((p.status==='In Progress'||p.status==='Ready')?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+'</span>'+
+        '<td class="pdl-actcell'+(adv?' has-adv':'')+'">'+
+          (adv
+            ? ('<span class="pdl-act-left"><button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+'</span>'+
+               '<span class="pdl-act-mid"><button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button></span>'+
+               '<span class="pdl-act-right">'+((p.status==='In Progress'||p.status==='Ready')?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+'</span>')
+            : ('<button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Undo (back one status)">'+BACK_SVG+'</button>':''))
+          )+
         '</td></tr>';
     }
 
