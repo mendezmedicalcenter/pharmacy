@@ -129,7 +129,14 @@
     .pdl-noteicon{ background:none; border:none; cursor:pointer; color:#b3c3da; padding:4px; border-radius:6px; display:inline-flex; }
     .pdl-noteicon:hover{ background:var(--panel); }
     .pdl-noteicon.has{ color:#e0a11e; }
-    .pdl-actcell{ white-space:nowrap; display:flex; align-items:center; gap:6px; justify-content:center; }
+    .pdl-actcell{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6px; }
+    .pdl-act-left{ justify-self:start; display:inline-flex; align-items:center; gap:6px; }
+    .pdl-act-mid{ justify-self:center; display:inline-flex; }
+    .pdl-act-right{ justify-self:end; display:inline-flex; align-items:center; }
+    .pdl-mcell{ white-space:nowrap; }
+    .pdl-dol{ color:#1c7a3f; font-weight:800; font-size:12px; margin-right:2px; }
+    .pdl-money{ width:56px; border:1px solid var(--line); border-radius:9px; padding:6px 6px; font-size:13px; outline:none; text-align:center; }
+    .pdl-money:focus{ border-color:var(--blue); }
     .pdl-backslot{ flex:0 0 26px; display:inline-flex; justify-content:center; }
     .pdl-actslot{ flex:0 0 118px; display:inline-flex; justify-content:center; }
     .pdl-act{ display:inline-flex; align-items:center; justify-content:center; min-height:30px; width:auto; border:none; border-radius:9px; color:#fff; font-size:12px; font-weight:800; line-height:1; padding:0 14px; cursor:pointer; background:#103a6e; }
@@ -384,15 +391,17 @@
         '<td><span class="pdl-pill p-'+scls(p.status)+'">'+p.status+'</span></td>'+
         '<td>'+xselHTML(p.id,'provider',p.provider,'Select',xOptFlat(PROVIDERS,p.provider))+'</td>'+
         '<td><input class="pdl-in num" type="number" min="0" data-field="rx" data-id="'+p.id+'" value="'+(p.rx||'')+'" placeholder="0"></td>'+
-        '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="debit" data-id="'+p.id+'" value="'+(p.debit||'')+'" placeholder="0"></td>'+
-        '<td><input class="pdl-in num" type="number" min="0" step="0.01" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
+        '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="debit" data-id="'+p.id+'" value="'+(p.debit||'')+'" placeholder="0"></td>'+
+        '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
         '<td class="pdl-pay-cell" data-id="'+p.id+'">'+paymentCellHTML(p)+'</td>'+
         '<td class="pdl-center"><input type="checkbox" data-field="del" data-id="'+p.id+'"'+(p.del?' checked':'')+'></td>'+
         '<td class="pdl-actcell">'+
-          '<button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+
-          '<span class="pdl-backslot">'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+'</span>'+
-          '<span class="pdl-actslot">'+(adv?'<button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button>':'')+'</span>'+
-          (p.status==='Completed'?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+
+          '<span class="pdl-act-left">'+
+            '<button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+
+            (canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+
+          '</span>'+
+          '<span class="pdl-act-mid">'+(adv?'<button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button>':'')+'</span>'+
+          '<span class="pdl-act-right">'+(p.status==='Completed'?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+'</span>'+
         '</td></tr>';
     }
 
@@ -518,7 +527,7 @@
       if(!field||!id) return; var p=byId(id); if(!p) return;
       if(field==='provider'){ p.provider=el.value; persist(); }
       else if(field==='rx'){ p.rx=+el.value; persist(); refreshDerived(); }
-      else if(field==='debit'||field==='cash'){ setMoney(p,field,+el.value); var cell=document.querySelector('.pdl-pay-cell[data-id="'+id+'"]'); if(cell) cell.innerHTML=paymentCellHTML(p); refreshDerived(); }
+      else if(field==='debit'||field==='cash'){ var mv=el.value.replace(/[^0-9.]/g,''); if(mv!==el.value) el.value=mv; setMoney(p,field,+mv||0); var cell=document.querySelector('.pdl-pay-cell[data-id="'+id+'"]'); if(cell) cell.innerHTML=paymentCellHTML(p); refreshDerived(); }
     });
     wrap.addEventListener('change',function(e){
       var el=e.target, role=el.getAttribute&&el.getAttribute('data-role'), field=el.getAttribute&&el.getAttribute('data-field'), id=el.getAttribute&&el.getAttribute('data-id');
