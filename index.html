@@ -129,11 +129,10 @@
     .pdl-noteicon{ background:none; border:none; cursor:pointer; color:#b3c3da; padding:4px; border-radius:6px; display:inline-flex; }
     .pdl-noteicon:hover{ background:var(--panel); }
     .pdl-noteicon.has{ color:#e0a11e; }
-    .pdl-actcell{ display:flex; align-items:center; justify-content:center; gap:8px; }
-    .pdl-actcell.has-adv{ display:grid; grid-template-columns:1fr auto 1fr; gap:6px; }
+    .pdl-actcell{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6px; }
     .pdl-act-left{ justify-self:start; display:inline-flex; align-items:center; gap:6px; }
     .pdl-act-mid{ justify-self:center; display:inline-flex; align-items:center; }
-    .pdl-act-right{ justify-self:end; display:inline-flex; align-items:center; }
+    .pdl-act-right{ justify-self:end; display:inline-flex; align-items:center; gap:6px; }
     .pdl-mcell{ white-space:nowrap; }
     .pdl-dol{ color:#1c7a3f; font-weight:800; font-size:12px; margin-right:2px; }
     .pdl-money{ width:56px; border:1px solid var(--line); border-radius:9px; padding:6px 6px; font-size:13px; outline:none; text-align:center; }
@@ -253,6 +252,7 @@
     function fmtDobShort(d){ if(!d) return ''; var p=String(d).split('-'); return p.length===3?(p[1]+'/'+p[2]+'/'+p[0]):d; }
     function fetchHandoffs(){ var c=fdClient(); if(!c) return; c.from('visits').select('id,first_name,last_name,dob,provider').eq('day',S.selDate).eq('needs_meds',true).then(function(r){ if(r&&!r.error){ importHandoffs(r.data||[]); } }); }
     function importHandoffs(list){
+      var current={}; list.forEach(function(h){ current[h.id]=true; }); // fdIds currently flagged Rx
       var existing={}; S.patients.forEach(function(p){ if(p.fdId) existing[p.fdId]=true; });
       var added=false;
       list.forEach(function(h){
@@ -264,7 +264,12 @@
           employee:'', provider:h.provider||'', rx:0, debit:0, cash:0, payment:'No Copay', del:false });
         added=true;
       });
-      if(added){ persist(); render(); }
+      // Remove handoffs the Front Desk un-flagged (Rx unchecked / visit gone) — but only if the
+      // pharmacy hasn't started them yet (still "Checking out"). Started ones stay.
+      var before=S.patients.length;
+      S.patients=S.patients.filter(function(p){ return !(p.fdId && !current[p.fdId] && p.status==='Checking out'); });
+      var removed=(S.patients.length!==before);
+      if(added||removed){ persist(); render(); }
     }
     function initHandoffs(){ if(fdWired){ fetchHandoffs(); return; } var c=fdClient(); if(!c){ setTimeout(initHandoffs,400); return; } fdWired=true; fetchHandoffs(); try{ c.channel('fd-handoff').on('postgres_changes',{event:'*',schema:'public',table:'visits'},function(){ fetchHandoffs(); }).subscribe(); }catch(e){} }
 
@@ -396,13 +401,10 @@
         '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
         '<td class="pdl-pay-cell" data-id="'+p.id+'">'+paymentCellHTML(p)+'</td>'+
         '<td class="pdl-center"><input type="checkbox" data-field="del" data-id="'+p.id+'"'+(p.del?' checked':'')+'></td>'+
-        '<td class="pdl-actcell'+(adv?' has-adv':'')+'">'+
-          (adv
-            ? ('<span class="pdl-act-left"><button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+'</span>'+
-               '<span class="pdl-act-mid"><button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button></span>'+
-               '<span class="pdl-act-right">'+((p.status==='In Progress'||p.status==='Ready')?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+'</span>')
-            : ('<button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button>'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Undo (back one status)">'+BACK_SVG+'</button>':''))
-          )+
+        '<td class="pdl-actcell">'+
+          '<span class="pdl-act-left">'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+'</span>'+
+          '<span class="pdl-act-mid">'+(adv?'<button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button>':'')+'</span>'+
+          '<span class="pdl-act-right">'+((p.status==='In Progress'||p.status==='Ready')?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+'<button class="pdl-trash" data-action="trash" data-id="'+p.id+'" title="Remove" aria-label="Remove">'+TRASH_SVG+'</button></span>'+
         '</td></tr>';
     }
 
