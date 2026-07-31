@@ -402,7 +402,7 @@
             (canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+
           '</span>'+
           '<span class="pdl-act-mid">'+(adv?'<button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button>':(p.status==='Completed'?'<span class="pdl-done">✓ Done</span>':''))+'</span>'+
-          '<span class="pdl-act-right">'+(p.status==='Completed'?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+'</span>'+
+          '<span class="pdl-act-right">'+((p.status==='In Progress'||p.status==='Ready')?'<button class="pdl-noshow" data-action="noshow" data-id="'+p.id+'" title="No show / Left">'+NOSHOW_SVG+'</button>':'')+'</span>'+
         '</td></tr>';
     }
 
