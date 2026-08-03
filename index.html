@@ -33,7 +33,7 @@
     .btn:disabled{ opacity:.45; cursor:not-allowed; }
 
     .pdl{ display:flex; flex-direction:column; gap:16px; }
-    .pdl.pdl-fs{ position:fixed; inset:0; z-index:400; background:#eef3fb; overflow:auto; padding:16px 22px calc(22px + env(safe-area-inset-bottom)); margin:0; }
+    .pdl.pdl-fs{ position:fixed; inset:0; width:auto; max-width:none; z-index:400; background:#eef3fb; overflow:auto; padding:0 0 env(safe-area-inset-bottom); margin:0; }
     .pdl-banner{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; background:linear-gradient(120deg,#0a2a52 0%,#103a6e 100%); border:2px solid #e6a23c; border-radius:16px; padding:18px 22px; color:#fff; }
     .pdl-banner h1{ margin:0; font-size:26px; }
     .pdl-banner p{ margin:3px 0 0; color:#b9cbe6; font-size:14px; }
@@ -481,18 +481,13 @@
       for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-view')===t); }
     }
 
-    // Real fullscreen so it covers the whole screen (hides the portal sidebar when embedded), with the CSS as fallback.
+    // Full-screen = CSS overlay (reliable inside iframes) + tell the host (portal/Lovable) to hide its sidebar and expand the iframe.
     function toggleFull(){
       S.full=!S.full;
-      var de=document.documentElement;
-      try{
-        if(S.full){ var rq=de.requestFullscreen||de.webkitRequestFullscreen; if(rq) rq.call(de); }
-        else if(document.fullscreenElement||document.webkitFullscreenElement){ var ex=document.exitFullscreen||document.webkitExitFullscreen; if(ex) ex.call(document); }
-      }catch(e){}
       render();
+      try{ window.parent.postMessage({type:'queue-fullscreen', app:'pharmacy', full:S.full}, '*'); }catch(e){}
     }
-    document.addEventListener('fullscreenchange',function(){ var fs=!!(document.fullscreenElement||document.webkitFullscreenElement); if(!fs && S.full){ S.full=false; render(); } });
-    document.addEventListener('webkitfullscreenchange',function(){ var fs=!!(document.fullscreenElement||document.webkitFullscreenElement); if(!fs && S.full){ S.full=false; render(); } });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&S.full){ S.full=false; render(); try{ window.parent.postMessage({type:'queue-fullscreen', app:'pharmacy', full:false}, '*'); }catch(e2){} } });
 
     // ---- event delegation ----
     document.addEventListener('click',function(e){
