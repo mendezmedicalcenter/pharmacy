@@ -396,7 +396,7 @@
         '<td class="pdl-name">'+esc(p.name)+(p.fdId?' <span class="pdl-fdtag" title="Sent from Front Desk">↪ FD</span>':'')+(p.dob?'<div class="pdl-dob">DOB '+esc(fmtDobShort(p.dob))+'</div>':'')+'</td>'+
         '<td class="pdl-center"><button class="pdl-noteicon'+(p.notes?' has':'')+'" data-action="note" data-id="'+p.id+'" title="'+esc(p.notes||'Add note')+'">'+NOTE_SVG+'</button></td>'+
         '<td>'+xselHTML(p.id,'provider',p.provider,'Select',xOptFlat(PROVIDERS,p.provider))+'</td>'+
-        '<td><input class="pdl-in num" type="number" min="0" data-field="rx" data-id="'+p.id+'" value="'+(p.rx||'')+'" placeholder="0"></td>'+
+        '<td><input class="pdl-in num" type="text" inputmode="numeric" data-field="rx" data-id="'+p.id+'" value="'+(p.rx||'')+'" placeholder="0"></td>'+
         '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="debit" data-id="'+p.id+'" value="'+(p.debit||'')+'" placeholder="0"></td>'+
         '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
         '<td class="pdl-pay-cell" data-id="'+p.id+'">'+paymentCellHTML(p)+'</td>'+
@@ -525,7 +525,7 @@
       var el=e.target, field=el.getAttribute&&el.getAttribute('data-field'), id=el.getAttribute&&el.getAttribute('data-id');
       if(!field||!id) return; var p=byId(id); if(!p) return;
       if(field==='provider'){ p.provider=el.value; persist(); }
-      else if(field==='rx'){ p.rx=+el.value; persist(); refreshDerived(); }
+      else if(field==='rx'){ var mv=el.value.replace(/[^0-9]/g,''); if(mv!==el.value) el.value=mv; p.rx=+mv||0; persist(); refreshDerived(); }
       else if(field==='debit'||field==='cash'){ var mv=el.value.replace(/[^0-9.]/g,''); if(mv!==el.value) el.value=mv; setMoney(p,field,+mv||0); var cell=document.querySelector('.pdl-pay-cell[data-id="'+id+'"]'); if(cell) cell.innerHTML=paymentCellHTML(p); refreshDerived(); }
     });
     wrap.addEventListener('change',function(e){
