@@ -137,6 +137,14 @@
     .pdl-dol{ color:#1c7a3f; font-weight:800; font-size:12px; margin-right:2px; }
     .pdl-money{ width:56px; border:1px solid var(--line); border-radius:9px; padding:6px 6px; font-size:13px; outline:none; text-align:center; }
     .pdl-money:focus{ border-color:var(--blue); }
+    .cd-overlay{ position:fixed; inset:0; background:rgba(10,25,50,.45); display:flex; align-items:center; justify-content:center; z-index:100000; padding:20px; }
+    .cd-modal{ background:#fff; border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.3); width:100%; max-width:400px; overflow:hidden; }
+    .cd-head{ padding:20px 22px 0; } .cd-head h3{ margin:0; font-size:19px; color:#0a2a52; }
+    .cd-body{ padding:12px 22px 20px; color:#40506a; font-size:14px; line-height:1.5; }
+    .cd-foot{ display:flex; justify-content:flex-end; gap:10px; padding:14px 22px; border-top:1px solid #eef1f6; background:#f9fafc; }
+    .cd-btn{ border:none; border-radius:9px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; }
+    .cd-cancel{ background:#e8edf5; color:#33415c; } .cd-cancel:hover{ background:#dbe3ef; }
+    .cd-del{ background:#dc3545; color:#fff; } .cd-del:hover{ background:#c62d3c; }
     .pdl-backslot{ flex:0 0 26px; display:inline-flex; justify-content:center; }
     .pdl-actslot{ flex:0 0 118px; display:inline-flex; justify-content:center; }
     .pdl-act{ display:inline-flex; align-items:center; justify-content:center; min-height:30px; width:auto; white-space:nowrap; border:none; border-radius:9px; color:#fff; font-size:12px; font-weight:800; line-height:1; padding:0 14px; cursor:pointer; background:#103a6e; }
@@ -245,6 +253,22 @@
     }
     function closeAllXsel(){ var m=document.querySelectorAll('.xsel-menu'); for(var i=0;i<m.length;i++) m[i].hidden=true; var b=document.querySelectorAll('.xsel.open'); for(var j=0;j<b.length;j++) b[j].classList.remove('open'); }
     function openXsel(box){ closeAllXsel(); var menu=box.querySelector('.xsel-menu'); if(!menu) return; var r=box.getBoundingClientRect(); menu.style.minWidth=r.width+'px'; menu.style.maxHeight='none'; menu.hidden=false; box.classList.add('open'); var mw=menu.offsetWidth, natural=menu.scrollHeight; var below=window.innerHeight-r.bottom-12, above=r.top-12; var up=(below<120)&&(above>below+40); var avail=up?above:below; var h=Math.min(natural,Math.max(120,avail)); menu.style.maxHeight=h+'px'; menu.style.top=(up?(r.top-4-h):(r.bottom+4))+'px'; var left=r.left+r.width/2-mw/2; if(left<6) left=6; if(left+mw>window.innerWidth-6) left=window.innerWidth-6-mw; menu.style.left=left+'px'; var s=menu.querySelector('.xsel-opt.sel'); if(s) s.scrollIntoView({block:'nearest'}); }
+
+    // Confirmation box before deleting (prevents accidental removal).
+    function confirmDelete(name, onYes){
+      var ov=document.createElement('div'); ov.className='cd-overlay';
+      ov.innerHTML='<div class="cd-modal" role="dialog" aria-modal="true"><div class="cd-head"><h3>Remove patient?</h3></div>'+
+        '<div class="cd-body">This removes <b>'+esc(name||'this patient')+'</b> from the queue. This can\'t be undone.</div>'+
+        '<div class="cd-foot"><button type="button" class="cd-btn cd-cancel">Cancel</button><button type="button" class="cd-btn cd-del">Delete</button></div></div>';
+      document.body.appendChild(ov);
+      function close(){ if(ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener('keydown', onKey, true); }
+      function onKey(e){ if(e.key==='Escape'){ e.stopPropagation(); close(); } else if(e.key==='Enter'){ e.stopPropagation(); close(); onYes(); } }
+      ov.addEventListener('click', function(e){ if(e.target===ov) close(); });
+      ov.querySelector('.cd-cancel').addEventListener('click', close);
+      ov.querySelector('.cd-del').addEventListener('click', function(){ close(); onYes(); });
+      document.addEventListener('keydown', onKey, true);
+      setTimeout(function(){ var b=ov.querySelector('.cd-del'); if(b) b.focus(); },30);
+    }
 
     // ---- Front Desk handoff: patients the Front Desk flagged "Rx" (Supabase visits.needs_meds) show up here live ----
     var FD_SUPA_URL='https://ukvjrxvvaokklxrhrhss.supabase.co', FD_SUPA_KEY='sb_publishable_4zeQ0_L3_zOWRQQBeXlSDg_TIm-OCZw';
@@ -509,7 +533,7 @@
       else if(a==='advance'&&p){ advance(p); }
       else if(a==='back'&&p){ back(p); }
       else if(a==='noshow'&&p){ noShow(p); }
-      else if(a==='trash'&&p){ S.patients=S.patients.filter(function(x){ return x.id!==id; }); persist(); render(); }
+      else if(a==='trash'&&p){ confirmDelete(p.name||'', function(){ S.patients=S.patients.filter(function(x){ return x.id!==id; }); persist(); render(); }); }
       else if(a==='note'&&p){ var n=window.prompt('Note for '+p.name, p.notes); if(n!==null){ update(id,{notes:n}); render(); } }
       else if(a==='paytoggle'&&p){ update(id,{payment:p.payment==='Posted'?'Not Posted':'Posted'}); var cell=document.querySelector('.pdl-pay-cell[data-id="'+id+'"]'); if(cell) cell.innerHTML=paymentCellHTML(p); refreshDerived(); }
       else if(a==='refresh'){ S.now=Date.now(); render(); }
