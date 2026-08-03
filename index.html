@@ -229,7 +229,7 @@
       tech: '',
       now: Date.now(),
       modal: false,
-      full: (function(){try{return sessionStorage.getItem('ph_full')==='1';}catch(e){return false;}})()
+      full: false
     };
     function isToday(){ return S.selDate===todayKey(); }
     function persist(){ try{ localStorage.setItem(storeKeyFor(S.selDate), JSON.stringify(S.patients)); }catch(e){} }
@@ -485,11 +485,10 @@
     // Full-screen = CSS overlay (reliable inside iframes) + tell the host (portal/Lovable) to hide its sidebar and expand the iframe.
     function toggleFull(){
       S.full=!S.full;
-      try{ sessionStorage.setItem('ph_full', S.full?'1':'0'); }catch(e){}
       render();
       try{ window.parent.postMessage({type:'queue-fullscreen', app:'pharmacy', full:S.full}, '*'); }catch(e){}
     }
-    document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&S.full){ S.full=false; try{ sessionStorage.setItem('ph_full','0'); }catch(e3){} render(); try{ window.parent.postMessage({type:'queue-fullscreen', app:'pharmacy', full:false}, '*'); }catch(e2){} } });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&S.full){ S.full=false; render(); try{ window.parent.postMessage({type:'queue-fullscreen', app:'pharmacy', full:false}, '*'); }catch(e2){} } });
 
     // ---- event delegation ----
     document.addEventListener('click',function(e){
