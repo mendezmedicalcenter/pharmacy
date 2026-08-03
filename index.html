@@ -555,7 +555,6 @@
     if(_tv) S.full=true;
     document.body.classList.add('view-daily'); // single Queue view (Dashboard tab removed)
     render();
-    if(S.full){ try{ window.parent.postMessage({type:'queue-fullscreen', app:'pharmacy', full:true}, '*'); }catch(e){} }
     initHandoffs(); // live-read patients the Front Desk flagged "Rx"
   })();
   </script>
