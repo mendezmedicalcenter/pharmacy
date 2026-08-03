@@ -395,13 +395,13 @@
         '<td>'+(p.employee?esc(p.employee):'<span class="pdl-dim">—</span>')+'</td>'+
         '<td class="pdl-name">'+esc(p.name)+(p.fdId?' <span class="pdl-fdtag" title="Sent from Front Desk">↪ FD</span>':'')+(p.dob?'<div class="pdl-dob">DOB '+esc(fmtDobShort(p.dob))+'</div>':'')+'</td>'+
         '<td class="pdl-center"><button class="pdl-noteicon'+(p.notes?' has':'')+'" data-action="note" data-id="'+p.id+'" title="'+esc(p.notes||'Add note')+'">'+NOTE_SVG+'</button></td>'+
-        '<td><span class="pdl-pill p-'+scls(p.status)+'">'+p.status+'</span></td>'+
         '<td>'+xselHTML(p.id,'provider',p.provider,'Select',xOptFlat(PROVIDERS,p.provider))+'</td>'+
         '<td><input class="pdl-in num" type="number" min="0" data-field="rx" data-id="'+p.id+'" value="'+(p.rx||'')+'" placeholder="0"></td>'+
         '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="debit" data-id="'+p.id+'" value="'+(p.debit||'')+'" placeholder="0"></td>'+
         '<td class="pdl-mcell"><span class="pdl-dol">$</span><input class="pdl-money" type="text" inputmode="decimal" data-field="cash" data-id="'+p.id+'" value="'+(p.cash||'')+'" placeholder="0"></td>'+
         '<td class="pdl-pay-cell" data-id="'+p.id+'">'+paymentCellHTML(p)+'</td>'+
         '<td class="pdl-center"><input type="checkbox" data-field="del" data-id="'+p.id+'"'+(p.del?' checked':'')+'></td>'+
+        '<td><span class="pdl-pill p-'+scls(p.status)+'">'+p.status+'</span></td>'+
         '<td class="pdl-actcell">'+
           '<span class="pdl-act-left">'+(canBack?'<button class="pdl-back" data-action="back" data-id="'+p.id+'" title="Back one status">'+BACK_SVG+'</button>':'')+'</span>'+
           '<span class="pdl-act-mid">'+(adv?'<button class="pdl-act" data-action="advance" data-id="'+p.id+'"'+(adv.needTech&&!S.tech?' disabled title="Select your TECH name first"':'')+'>'+adv.label+'</button>':'')+'</span>'+
@@ -443,7 +443,7 @@
               '</div>'+
             '</div>'+
             '<div class="pdl-table-wrap"><table class="pdl-table"><thead><tr>'+
-              '<th>#</th><th>Time</th><th>Wait</th><th>Employee</th><th>Patient</th><th>Notes</th><th>Status</th><th>Provider</th><th># of Rx</th><th>Card</th><th>Cash</th><th>Payment</th><th>Del.</th><th>Actions</th>'+
+              '<th>#</th><th>Time</th><th>Wait</th><th>Employee</th><th>Patient</th><th>Notes</th><th>Provider</th><th># of Rx</th><th>Card</th><th>Cash</th><th>Payment</th><th>Del.</th><th>Status</th><th>Actions</th>'+
             '</tr></thead><tbody>'+rows+'</tbody></table></div>'+
             totalsHTML()+
           '</div>'+
