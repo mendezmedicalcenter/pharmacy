@@ -253,7 +253,6 @@
     function fmtDobShort(d){ if(!d) return ''; var p=String(d).split('-'); return p.length===3?(p[1]+'/'+p[2]+'/'+p[0]):d; }
     function fetchHandoffs(){ var c=fdClient(); if(!c) return; c.from('visits').select('id,first_name,last_name,dob,provider').eq('day',S.selDate).eq('needs_meds',true).then(function(r){ if(r&&!r.error){ importHandoffs(r.data||[]); } }); }
     function importHandoffs(list){
-      var current={}; list.forEach(function(h){ current[h.id]=true; }); // fdIds currently flagged Rx
       var existing={}; S.patients.forEach(function(p){ if(p.fdId) existing[p.fdId]=true; });
       var added=false;
       list.forEach(function(h){
@@ -265,12 +264,10 @@
           employee:'', provider:h.provider||'', rx:0, debit:0, cash:0, payment:'No Copay', del:false });
         added=true;
       });
-      // Remove handoffs the Front Desk un-flagged (Rx unchecked / visit gone) — but only if the
-      // pharmacy hasn't started them yet (still "Checking out"). Started ones stay.
-      var before=S.patients.length;
-      S.patients=S.patients.filter(function(p){ return !(p.fdId && !current[p.fdId] && p.status==='Checking out'); });
-      var removed=(S.patients.length!==before);
-      if(added||removed){ persist(); render(); }
+      // Once imported, a hand-off row belongs to Pharmacy. The Front Desk un-flagging Rx or
+      // deleting the patient does NOT remove it here — only Pharmacy can delete its own row
+      // (via the trash). This protects in-progress pharmacy work from an accidental FD delete.
+      if(added){ persist(); render(); }
     }
     function initHandoffs(){ if(fdWired){ fetchHandoffs(); return; } var c=fdClient(); if(!c){ setTimeout(initHandoffs,400); return; } fdWired=true; fetchHandoffs(); try{ c.channel('fd-handoff').on('postgres_changes',{event:'*',schema:'public',table:'visits'},function(){ fetchHandoffs(); }).subscribe(); }catch(e){} }
 
