@@ -435,7 +435,7 @@
       var curView=document.body.classList.contains('view-daily')?'daily':'dashboard';
       var rows = S.patients.length===0
         ? '<tr><td colspan="14" class="pdl-empty">No patients yet today. Click "+ Add Patient" to start.</td></tr>'
-        : S.patients.map(function(p,i){ return rowHTML(p,i); }).join('');
+        : S.patients.map(function(p,i){ return {p:p,i:i}; }).reverse().map(function(o){ return rowHTML(o.p,o.i); }).join('');
 
       var html =
         '<div class="pdl'+(S.full?' pdl-fs':'')+'">'+
